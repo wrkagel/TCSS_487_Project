@@ -33,7 +33,7 @@ public class Sha3 {
             27, 41, 56, 8,  25, 43, 62, 18, 39, 61, 20, 44};
 
     /**
-     * Round Offset values for Keccak-1600. Values copied from the tiny_sha3 at
+     * Values for Keccak-1600. Values copied from the tiny_sha3 at
      * looking at the project https://github.com/mjosaarinen/tiny_sha3.
      */
     private static final int[] piln = new int[] {
