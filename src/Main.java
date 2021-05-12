@@ -10,8 +10,8 @@ public class Main {
         }
         byte[] s = "".getBytes(StandardCharsets.UTF_8);
         int l = 512;
-        byte[] md = KMACXOF.KMACXOF256(k, x, l, s);
-        KMACXOF.printArray(md, "md");
+        byte[] md = KMACXOF256.KMACXOF256(k, x, l, s);
+        KMACXOF256.printArray(md, "md");
     }
 
 }

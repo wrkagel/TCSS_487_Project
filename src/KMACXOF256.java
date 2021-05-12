@@ -1,6 +1,6 @@
 import java.nio.charset.StandardCharsets;
 
-public class KMACXOF {
+public class KMACXOF256 {
 
     /**
      * Used to mask individual bits of a byte.
