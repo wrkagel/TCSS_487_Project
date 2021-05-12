@@ -40,19 +40,25 @@ public class Sha3 {
             10, 7,  11, 17, 18, 3, 5,  16, 8,  21, 24, 4,
             15, 23, 19, 13, 12, 2, 20, 14, 22, 9,  6,  1};
 
+    private static final long[] masks = new long[] {
+            0x00FFFFFFFFFFFFFFl, 0xFF00FFFFFFFFFFFFl, 0xFFFF00FFFFFFFFFFl, 0xFFFFFF00FFFFFFFFl,
+            0xFFFFFFFF00FFFFFFl, 0xFFFFFFFFFF00FFFFl, 0xFFFFFFFFFFFF00FFl, 0xFFFFFFFFFFFFFF00l
+    };
+
     /**
      * Array that all permutations will be performed on.
      */
     private long[] st = new long[25];
 
-    private int pt, rsize, mdlen;
+    private int pt;
+    private final int rsize, mdlen;
 
     Sha3(int mdlen) {
         for (int i = 0; i < 25; i++) {
             st[i] = 0l;
         }
         this.mdlen = mdlen;
-        this.rsize = 200 - 2 * mdlen;
+        this.rsize = 136;
         this.pt = 0;
     }
 
@@ -107,36 +113,46 @@ public class Sha3 {
 
     }
 
-    public void sha3Update( byte[] data, int len) {
+    public void sha3Update( byte[] data) {
         int i, j = pt;
-        for (i = 0; i < len; i++) {
+        for (i = 0; i < data.length; i++) {
             byte b = ((byte) (st[j / 8] >>> (8 * (7 - j % 8))));
+            st[j/8] = st[j/8] & masks[i % 8];
             b ^= data[i];
-            st[j / 8] |= ((long) b) << (8 * (7 - j % 8));
+            st[j / 8] |= Byte.toUnsignedLong(b) << (8 * (7 - j % 8));
             j++;
             if(j >= rsize) {
                 sha3Keccak1600();
                 j = 0;
             }
         }
+        printArray(st);
+        j = rsize - 1;
+        byte b = ((byte) (st[j / 8] >>> (8 * (7 - j % 8))));
+        st[j/8] = st[j/8] & masks[j % 8];
+        b ^= 0x80;
+        st[j / 8] |= Byte.toUnsignedLong(b) << (8 * (7 - j % 8));
+        printArray(st);
+        sha3Keccak1600();
+        printArray(st);
         pt = j;
     }
 
     public void sha3Final(byte[] md) {
         int i;
 
-        byte b = ((byte) (st[pt / 8] >>> (8 * (7 - pt % 8))));
-        b ^= 0x06;
-        st[pt / 8] |= ((long) b) << (8 * (7 - pt % 8));
-
-        b = ((byte) (st[(rsize - 1) / 8] >>> (8 * (7 - (rsize - 1) % 8))));
-        b ^= 0x06;
-        st[(rsize - 1) / 8] |= ((long) b) << (8 * (7 - (rsize - 1) % 8));
-
         for (i = 0; i < mdlen; i++) {
             md[i] = ((byte) (st[i / 8] >>> (8 * (7 - i % 8))));
         }
 
+    }
+
+    public void printArray(long[] test) {
+        System.out.print("permutation: ");
+        for(int i = 0; i < test.length; i++) {
+                System.out.print(String.format("%016x, ", test[i]));
+        }
+        System.out.println();
     }
 
 }

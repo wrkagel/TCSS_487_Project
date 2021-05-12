@@ -1,12 +1,11 @@
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 public class KMACXOF {
 
     /**
      * Used to mask individual bits of a byte.
      */
-    private static final byte[] mask = new byte[] {1, 2, 4, 8, 16, 32, 64, -128};
+    private static final byte[] kmac = "KMAC".getBytes(StandardCharsets.UTF_8);
 
     /**
      * Returns a number 'a' left encoded in an unambiguous way to be used with Sha3 derived functions.
@@ -17,9 +16,9 @@ public class KMACXOF {
      */
     public static byte[] leftEncode(int a, int n) {
         byte[] left = new byte[n + 1];
-        left[0] = enc8((byte) n);
+        left[0] = (byte) n;
         for(int i = n; i > 0; i--) {
-            left[i] = enc8((byte) (a >>> ((n - i) * 8)));
+            left[i] = (byte) (a >>> ((n - i) * 8));
         }
         return left;
     }
@@ -33,25 +32,11 @@ public class KMACXOF {
      */
     public static byte[] rightEncode(int a, int n) {
         byte[] right = new byte[n + 1];
-        right[n] = enc8((byte) n);
+        right[n] = (byte) n;
         for(int i = n - 1; i > - 1; i--) {
-            right[i] = enc8((byte) (a >>> ((n - i - 1) * 8)));
+            right[i] = (byte) (a >>> ((n - i - 1) * 8));
         }
         return right;
-    }
-
-    /**
-     * Encodes the byte value as specified in https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-185.pdf.
-     * Since Java is always Big-Endian the bits must be flipped to Little-Endian.
-     * @param b The number to be encoded
-     * @return b in Little-Endian
-     */
-    public static byte enc8(byte b) {
-        byte result = 0;
-        for (int i = 0; i < 8; i++) {
-            result |= ((((b & mask[i]) << (7 - i)) & 0xFF) >>> i);
-        }
-        return result;
     }
 
     /**
@@ -81,7 +66,7 @@ public class KMACXOF {
         byte[] left = leftEncode(a.length * 8, n);
         System.arraycopy(left, 0, result, 0, left.length);
         System.arraycopy(a, 0, result, left.length,
-                left.length + a.length - left.length);
+                a.length);
         return result;
     }
 
@@ -99,10 +84,10 @@ public class KMACXOF {
         if (w < 1) throw new IllegalArgumentException("Invalid w for bytepad.");
         int n = determineN(w);
         byte[] left = leftEncode(w, n);
-        int extra = a.length % w == 0 ? 0 : w - a.length % w;
+        int extra = (a.length + left.length) % w == 0 ? 0 : w - (a.length + left.length) % w;
         byte[] result = new byte[a.length + left.length + extra];
         System.arraycopy(left, 0, result, 0, left.length);
-        System.arraycopy(a, 0, result, left.length, a.length + left.length - left.length);
+        System.arraycopy(a, 0, result, left.length, a.length);
         for (int i = left.length + a.length; i < result.length; i++) {
             result[i] = 0;
         }
@@ -111,24 +96,38 @@ public class KMACXOF {
 
     public static byte[] KMACXOF256(byte[] k, byte[] x, int L, byte[] s) {
         byte[] temp = bytepad(encodeString(k), 136);
-        byte[] newX = new byte[temp.length + x.length + 2];
+        byte[] newX = new byte[temp.length + x.length + 3];
         byte[] right = rightEncode(0, 1);
         System.arraycopy(temp, 0, newX, 0, temp.length);
-        System.arraycopy(x, 0, newX, temp.length, temp.length + x.length - temp.length);
-        newX[newX.length - 2] = right[0];
-        newX[newX.length - 1] = right[1];
-        return cShake256(newX, L, "KMAC".getBytes(StandardCharsets.UTF_8), s);
+        System.arraycopy(x, 0, newX, temp.length, x.length);
+        newX[newX.length - 3] = right[0];
+        newX[newX.length - 2] = right[1];
+        newX[newX.length - 1] = 0x04;
+        return cShake256(newX, L, kmac, s);
     }
 
     public static byte[] cShake256(byte[] x, int l, byte[] n, byte[] s) {
         n = encodeString(n);
-        System.out.println(Arrays.toString(n));
         s = encodeString(s);
-        System.out.println(Arrays.toString(s));
         byte[] ns = new byte[n.length + s.length];
         System.arraycopy(n, 0, ns, 0, n.length);
-        if (ns.length - n.length >= 0) System.arraycopy(s, 0, ns, n.length, ns.length - n.length);
+        System.arraycopy(s, 0, ns, n.length, s.length);
         byte[] padN = bytepad(ns, 136);
-        return x;
+        byte[] input = new byte[padN.length + x.length];
+        System.arraycopy(padN, 0, input, 0, padN.length);
+        System.arraycopy(x, 0, input, padN.length, x.length);
+        Sha3 keccak_512 = new Sha3(l / 8);
+        keccak_512.sha3Update(input);
+        byte[] md = new byte[l / 8];
+        keccak_512.sha3Final(md);
+        return md;
+    }
+
+    public static void printArray(byte[] input, String name) {
+        System.out.print(name + ": ");
+        for (int i = 0; i < input.length; i++) {
+            System.out.print(String.format("%x, ", input[i]));
+        }
+        System.out.println();
     }
 }
