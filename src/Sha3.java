@@ -5,6 +5,8 @@
     4/25/2021
  */
 
+import java.util.Arrays;
+
 /**
  * Class that can perform Keccak-1600 Encryption and decryption on a long[25] data array.
  * Specifications taken from https://keccak.team/keccak_specs_summary.html and code developed
@@ -17,12 +19,12 @@ public class Sha3 {
      * https://keccak.team/keccak_specs_summary.html.
      */
     private static final long[] RC = new long[] {
-            0x0000000000000001l,0x0000000000008082l,0x800000000000808Al,0x8000000080008000l,
-            0x000000000000808Bl,0x0000000080000001l,0x8000000080008081l,0x8000000000008009l,
-            0x000000000000008Al,0x0000000000000088l,0x0000000080008009l,0x000000008000000Al,
-            0x000000008000808Bl,0x800000000000008Bl,0x8000000000008089l,0x8000000000008003l,
-            0x8000000000008002l,0x8000000000000080l,0x000000000000800Al,0x800000008000000Al,
-            0x8000000080008081l,0x8000000000008080l,0x0000000080000001l,0x8000000080008008l};
+            0x0000000000000001L,0x0000000000008082L,0x800000000000808AL,0x8000000080008000L,
+            0x000000000000808BL,0x0000000080000001L,0x8000000080008081L,0x8000000000008009L,
+            0x000000000000008AL,0x0000000000000088L,0x0000000080008009L,0x000000008000000AL,
+            0x000000008000808BL,0x800000000000008BL,0x8000000000008089L,0x8000000000008003L,
+            0x8000000000008002L,0x8000000000000080L,0x000000000000800AL,0x800000008000000AL,
+            0x8000000080008081L,0x8000000000008080L,0x0000000080000001L,0x8000000080008008L};
 
     /**
      * Round Offset values for Keccak-1600. Values copied from the tiny_sha3 at
@@ -44,14 +46,14 @@ public class Sha3 {
      * Masks are used to make space in a long value for a byte to be added.
      */
     private static final long[] masks = new long[] {
-            0x00FFFFFFFFFFFFFFl, 0xFF00FFFFFFFFFFFFl, 0xFFFF00FFFFFFFFFFl, 0xFFFFFF00FFFFFFFFl,
-            0xFFFFFFFF00FFFFFFl, 0xFFFFFFFFFF00FFFFl, 0xFFFFFFFFFFFF00FFl, 0xFFFFFFFFFFFFFF00l
+            0x00FFFFFFFFFFFFFFL, 0xFF00FFFFFFFFFFFFL, 0xFFFF00FFFFFFFFFFL, 0xFFFFFF00FFFFFFFFL,
+            0xFFFFFFFF00FFFFFFL, 0xFFFFFFFFFF00FFFFL, 0xFFFFFFFFFFFF00FFL, 0xFFFFFFFFFFFFFF00L
     };
 
     /**
      * Array that all permutations will be performed on.
      */
-    private long[] st = new long[25];
+    private final long[] st = new long[25];
 
     /**
      * pt points to the current point in the st array.
@@ -69,9 +71,7 @@ public class Sha3 {
      * @param mdlen message digest length
      */
     Sha3(int mdlen) {
-        for (int i = 0; i < 25; i++) {
-            st[i] = 0l;
-        }
+        Arrays.fill(st, 0);
         this.mdlen = mdlen;
         this.rsize = 136;
         this.pt = 0;
@@ -148,15 +148,12 @@ public class Sha3 {
                 j = 0;
             }
         }
-        printArray(st);
         j = rsize - 1;
         byte b = ((byte) (st[j / 8] >>> (8 * (7 - j % 8))));
         st[j/8] = st[j/8] & masks[j % 8];
         b ^= 0x80;
         st[j / 8] |= Byte.toUnsignedLong(b) << (8 * (7 - j % 8));
-        printArray(st);
         sha3Keccak1600();
-        printArray(st);
         pt = j;
     }
 
@@ -165,19 +162,17 @@ public class Sha3 {
      * @return byte[] array of size mdlen
      */
     public byte[] sha3Final() {
-        int i = 0;
-
         byte[] md = new byte[mdlen];
         int temp = mdlen;
 
         while(temp > rsize) {
-            for(i = 0; i < rsize; i++) {
+            for(int i = 0; i < rsize; i++) {
                 md[md.length - temp + i] = ((byte) (st[i / 8] >>> (8 * (7 - i % 8))));
             }
             sha3Keccak1600();
             temp -= rsize;
         }
-        for (i = 0; i < temp; i++) {
+        for (int i = 0; i < temp; i++) {
             md[md.length - temp + i] = ((byte) (st[i / 8] >>> (8 * (7 - i % 8))));
         }
 
@@ -188,8 +183,8 @@ public class Sha3 {
 
     public void printArray(long[] test) {
         System.out.print("permutation: ");
-        for(int i = 0; i < test.length; i++) {
-                System.out.print(String.format("%016x, ", test[i]));
+        for (long l : test) {
+            System.out.printf("%016x, ", l);
         }
         System.out.println();
     }

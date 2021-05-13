@@ -94,7 +94,7 @@ public class KMACXOF256 {
         return result;
     }
 
-    public static byte[] KMACXOF256(byte[] k, byte[] x, int L, byte[] s) {
+    public static byte[] compute(byte[] k, byte[] x, int L, byte[] s) {
         byte[] temp = bytepad(encodeString(k), 136);
         byte[] newX = new byte[temp.length + x.length + 3];
         byte[] right = rightEncode(0, 1);

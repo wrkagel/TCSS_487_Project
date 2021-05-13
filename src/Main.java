@@ -1,93 +1,76 @@
-import javax.swing.*;
-import java.awt.*;
-import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        setupGUI();
+        Scanner sc = new Scanner(System.in);
+        byte[] inByte;
+        int mode = -1;
 
-
-        byte[] k = new byte[256 / 8];
-        {
-            for(int i = 0; i < k.length; i++) {
-                k[i] = (byte) (0x40 + i);
+        while(mode != 0) {
+            mode = getMode(sc);
+            if(mode > 0 && mode < 5) {
+                inByte = FileIO.getFile();
+                if(inByte != null) {
+                    operation(mode, inByte, sc);
+                }
             }
         }
-        byte[] x = new byte[1600 / 8];
-        for (int i = 0; i < x.length; i++) {
-            x[i] = (byte) i;
-        }
-        byte[] s = "My Tagged Application".getBytes(StandardCharsets.UTF_8);
-        int l = 512;
-        byte[] md = KMACXOF256.KMACXOF256(k, x, l, s);
-        KMACXOF256.printArray(md, "md");
+        sc.close();
     }
 
-    private static void setupGUI() {
-        var notFixed = new Object() {
-            byte[] readIn;
-        };
-        JFrame gui = new JFrame();
-        gui.setLayout(new BorderLayout());
-        JMenuBar menu = new JMenuBar();
-        gui.setJMenuBar(menu);
-        JMenu file = new JMenu("File");
-        menu.add(file);
-        JMenu inputMode = new JMenu("Input Mode");
-        menu.add(inputMode);
-        JCheckBoxMenuItem textIn = new JCheckBoxMenuItem("Text Input Enabled");
-        inputMode.add(textIn);
-        JMenuItem menuItem = new JMenuItem("Open");
-        file.add(menuItem);
-        JTextArea input = new JTextArea(50, 50);
-        input.setEditable(false);
-        textIn.addActionListener(e -> {
-            if (textIn.isSelected()) {
-                input.setText("");
-                input.setEditable(true);
-            } else {
-                input.setText("");
-                input.setEditable(false);
-            }
-        });
-        menuItem.addActionListener(e -> {
-            if(textIn.isSelected()) textIn.doClick();
-            JFileChooser choose = new JFileChooser();
-            choose.showOpenDialog(gui);
-            File chosen = choose.getSelectedFile();
-            try {
-                FileInputStream in = new FileInputStream(chosen);
-                input.setText("Currently selected file: " + chosen.getPath());
-                notFixed.readIn = in.readAllBytes();
-            } catch (FileNotFoundException fileNotFoundException) {
-                fileNotFoundException.printStackTrace();
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
-        });
-        JTextArea output = new JTextArea(50, 50);
-        gui.add(input, BorderLayout.WEST);
-        gui.add(output, BorderLayout.EAST);
-        JPanel middle = new JPanel();
-        middle.setLayout(new GridLayout());
-        JButton hash = new JButton("Simple Hash ->");
-        hash.addActionListener(e -> {
-            byte[] md = KMACXOF256.KMACXOF256(new byte[0], notFixed.readIn,
-                    512, "D".getBytes(StandardCharsets.UTF_8));
-            for(int i = 0; i < md.length; i++) {
-                output.append(Character.toString((char) md[i]));
-            }
-        });
-        hash.setSize(200, 200);
-        middle.add(hash);
-        gui.add(middle, BorderLayout.CENTER);
-        gui.pack();
-        gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    private static void operation(int mode, byte[] inByte, Scanner sc) {
+        switch (mode) {
+            case 1:
+                computeHash(inByte);
+                break;
+            case 2:
+            case 3:
+            case 4:
+                computeTag(inByte, sc);
+                break;
+            case 5:
+            default:
+                System.out.println("Error with main.operation() switch statement.");
+        }
+    }
 
-        gui.setVisible(true);
+    private static void computeTag(byte[] inByte, Scanner sc) {
+        String pw = getPassword(sc);
+        String s = "T";
+        byte[] outByte = KMACXOF256.compute(pw.getBytes(StandardCharsets.UTF_8), inByte,
+                512, s.getBytes(StandardCharsets.UTF_8));
+        FileIO.writeBytes(outByte);
+    }
+
+    private static String getPassword(Scanner sc) {
+        System.out.println("Please enter a password to use for the authentication tag: ");
+        return sc.nextLine();
+    }
+
+    private static void computeHash(byte[] inByte) {
+        String s = "D";
+        byte[] outByte = KMACXOF256.compute(new byte[0], inByte, 512, s.getBytes(StandardCharsets.UTF_8));
+        FileIO.writeHex(outByte);
+    }
+
+    private static int getMode(Scanner sc) {
+        int mode;
+        String input;
+        System.out.print("Please choose a mode by entering the corresponding number:\n1. Compute Hash" +
+                "\n2. Symmetrically encrypt a file using KMACXOF256\n3. " +
+                "Symmetrically decrypt a file using KMACXOF256\n4. Compute authentication tag\n" +
+                "0. Exit\nEnter mode: ");
+        input = sc.nextLine();
+        try {
+            mode = Integer.parseInt(input);
+        } catch (NumberFormatException e) {
+            System.out.println(input + " is not a valid number. Please enter a valid number.");
+            mode = -1;
+        }
+        return mode;
     }
 
 }
