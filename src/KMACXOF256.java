@@ -119,8 +119,7 @@ public class KMACXOF256 {
         Sha3 keccak_512 = new Sha3(l / 8);
         keccak_512.sha3Update(input);
         byte[] md = new byte[l / 8];
-        keccak_512.sha3Final(md);
-        return md;
+        return keccak_512.sha3Final();
     }
 
     public static void printArray(byte[] input, String name) {

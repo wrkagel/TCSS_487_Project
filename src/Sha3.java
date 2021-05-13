@@ -6,7 +6,7 @@
  */
 
 /**
- * Class that can perform Keccak-1600 Encryption and decryption on a long[25] data.
+ * Class that can perform Keccak-1600 Encryption and decryption on a long[25] data array.
  * Specifications taken from https://keccak.team/keccak_specs_summary.html and code developed
  * using the project at https://github.com/mjosaarinen/tiny_sha3 as a reference.
  */
@@ -40,6 +40,9 @@ public class Sha3 {
             10, 7,  11, 17, 18, 3, 5,  16, 8,  21, 24, 4,
             15, 23, 19, 13, 12, 2, 20, 14, 22, 9,  6,  1};
 
+    /**
+     * Masks are used to make space in a long value for a byte to be added.
+     */
     private static final long[] masks = new long[] {
             0x00FFFFFFFFFFFFFFl, 0xFF00FFFFFFFFFFFFl, 0xFFFF00FFFFFFFFFFl, 0xFFFFFF00FFFFFFFFl,
             0xFFFFFFFF00FFFFFFl, 0xFFFFFFFFFF00FFFFl, 0xFFFFFFFFFFFF00FFl, 0xFFFFFFFFFFFFFF00l
@@ -50,9 +53,21 @@ public class Sha3 {
      */
     private long[] st = new long[25];
 
+    /**
+     * pt points to the current point in the st array.
+     */
     private int pt;
+
+    /**
+     * rsize is used to denote the block size and mdlen denotes the length of the desired output.
+     */
     private final int rsize, mdlen;
 
+    /**
+     * Constructs an instance of Sha3 that will output a given message digest length. rsize is constant for KMACXOF256
+     * that this class is designed to work with and is therefore not a variable.
+     * @param mdlen message digest length
+     */
     Sha3(int mdlen) {
         for (int i = 0; i < 25; i++) {
             st[i] = 0l;
@@ -62,7 +77,10 @@ public class Sha3 {
         this.pt = 0;
     }
 
-    public void sha3Keccak1600() {
+    /**
+     * Performs the keccak[1600] permutations on the internal st array.
+     */
+    private void sha3Keccak1600() {
         int i, j, r;
         long t;
         long[] bc = new long[5];
@@ -113,6 +131,10 @@ public class Sha3 {
 
     }
 
+    /**
+     * Absorbs the data into the keccak[1600] sponge function one block at a time.
+     * @param data input data
+     */
     public void sha3Update( byte[] data) {
         int i, j = pt;
         for (i = 0; i < data.length; i++) {
@@ -138,12 +160,29 @@ public class Sha3 {
         pt = j;
     }
 
-    public void sha3Final(byte[] md) {
-        int i;
+    /**
+     * Squeezes out a number of bits from the sponge function equal to the message digest length set at creation.
+     * @return byte[] array of size mdlen
+     */
+    public byte[] sha3Final() {
+        int i = 0;
 
-        for (i = 0; i < mdlen; i++) {
-            md[i] = ((byte) (st[i / 8] >>> (8 * (7 - i % 8))));
+        byte[] md = new byte[mdlen];
+        int temp = mdlen;
+
+        while(temp > rsize) {
+            for(i = 0; i < rsize; i++) {
+                md[md.length - temp + i] = ((byte) (st[i / 8] >>> (8 * (7 - i % 8))));
+            }
+            sha3Keccak1600();
+            temp -= rsize;
         }
+        for (i = 0; i < temp; i++) {
+            md[md.length - temp + i] = ((byte) (st[i / 8] >>> (8 * (7 - i % 8))));
+        }
+
+
+        return md;
 
     }
 
