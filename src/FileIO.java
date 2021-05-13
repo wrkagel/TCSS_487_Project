@@ -37,8 +37,8 @@ public class FileIO {
                 outFile.delete();
                 if(outFile.createNewFile()) {
                     FileOutputStream outputStream = new FileOutputStream(outFile);
-                    for (int i = 0; i < outByte.length; i++) {
-                        String hex = String.format("%02X", outByte[i]);
+                    for (byte b : outByte) {
+                        String hex = String.format("%02X", b);
                         outputStream.write(hex.getBytes(StandardCharsets.UTF_8));
                     }
                 } else {

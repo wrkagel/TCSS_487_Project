@@ -1,5 +1,11 @@
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Computes the result of the KMACXOF256 function described in NIST.SP.800-185.
+ * Specifications for all functions used in this class either taken directly from the above publication or
+ * derived from it.
+ * Publication can be viewed at https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-185.pdf
+ */
 public class KMACXOF256 {
 
     /**
@@ -8,13 +14,34 @@ public class KMACXOF256 {
     private static final byte[] kmac = "KMAC".getBytes(StandardCharsets.UTF_8);
 
     /**
+     * Computes the result of calling the KMACXOF256 function as described in
+     * https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-185.pdf.
+     * @param k The key as a byte[]
+     * @param x The data as a byte[]
+     * @param L The length of the desired output as an int
+     * @param s Optional customization string as a byte[]
+     * @return a byte[] of the result of calling the KMACXOF256 function
+     */
+    public static byte[] compute(byte[] k, byte[] x, int L, byte[] s) {
+        byte[] temp = bytepad(encodeString(k), 136);
+        byte[] newX = new byte[temp.length + x.length + 3];
+        byte[] right = rightEncode(0, 1);
+        System.arraycopy(temp, 0, newX, 0, temp.length);
+        System.arraycopy(x, 0, newX, temp.length, x.length);
+        newX[newX.length - 3] = right[0];
+        newX[newX.length - 2] = right[1];
+        newX[newX.length - 1] = 0x04;
+        return cShake256(newX, L, kmac, s);
+    }
+
+    /**
      * Returns a number 'a' left encoded in an unambiguous way to be used with Sha3 derived functions.
      * Specification for left encode taken from https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-185.pdf
      * @param a Number to be encoded
      * @param n Minimum n such that 2^{8n} > a
      * @return byte[] of encoded number
      */
-    public static byte[] leftEncode(int a, int n) {
+    private static byte[] leftEncode(int a, int n) {
         byte[] left = new byte[n + 1];
         left[0] = (byte) n;
         for(int i = n; i > 0; i--) {
@@ -30,7 +57,7 @@ public class KMACXOF256 {
      * @param n Minimum n such that 2^{8n} > a
      * @return byte[] of encoded number
      */
-    public static byte[] rightEncode(int a, int n) {
+    private static byte[] rightEncode(int a, int n) {
         byte[] right = new byte[n + 1];
         right[n] = (byte) n;
         for(int i = n - 1; i > - 1; i--) {
@@ -44,7 +71,7 @@ public class KMACXOF256 {
      * @param a Must be greater than or equal to 0.
      * @return int n
      */
-    public static int determineN(int a) {
+    private static int determineN(int a) {
         if (a < 0) throw new IllegalArgumentException("a = " + a + ". Violation of a > -1 for determineN.");
         int n = 1;
         while (Math.pow(2, 8 * n) <= a) {
@@ -60,7 +87,7 @@ public class KMACXOF256 {
      * @param a Bit string to be encoded.
      * @return Encoded bit string as a byte[].
      */
-    public static byte[] encodeString(byte [] a) {
+    private static byte[] encodeString(byte [] a) {
         int n = determineN(a.length * 8);
         byte[] result = new byte[a.length + n + 1];
         byte[] left = leftEncode(a.length * 8, n);
@@ -80,7 +107,7 @@ public class KMACXOF256 {
      * @param w length of padding.
      * @return padded bitstring.
      */
-    public static byte[] bytepad(byte[] a, int w) {
+    private static byte[] bytepad(byte[] a, int w) {
         if (w < 1) throw new IllegalArgumentException("Invalid w for bytepad.");
         int n = determineN(w);
         byte[] left = leftEncode(w, n);
@@ -94,19 +121,21 @@ public class KMACXOF256 {
         return result;
     }
 
-    public static byte[] compute(byte[] k, byte[] x, int L, byte[] s) {
-        byte[] temp = bytepad(encodeString(k), 136);
-        byte[] newX = new byte[temp.length + x.length + 3];
-        byte[] right = rightEncode(0, 1);
-        System.arraycopy(temp, 0, newX, 0, temp.length);
-        System.arraycopy(x, 0, newX, temp.length, x.length);
-        newX[newX.length - 3] = right[0];
-        newX[newX.length - 2] = right[1];
-        newX[newX.length - 1] = 0x04;
-        return cShake256(newX, L, kmac, s);
-    }
-
-    public static byte[] cShake256(byte[] x, int l, byte[] n, byte[] s) {
+    /**
+     * Computes the result of calling the cShake256 function as describe in
+     * https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-185.pdf.
+     * Note that because this function is only being used with KMACXOF256 n is never the empty string
+     * and thus shake256 will never be called and thus is not implemented.
+     * @param x Main input as a byte[]
+     * @param l Length of desired output as an int
+     * @param n Function name as a byte[]
+     * @param s Customization string as a byte[]
+     * @return a byte[] of the result of calling the cShake256 function.
+     */
+    private static byte[] cShake256(byte[] x, int l, byte[] n, byte[] s) {
+        if(l == 0) {
+            return new byte[0];
+        }
         n = encodeString(n);
         s = encodeString(s);
         byte[] ns = new byte[n.length + s.length];
@@ -122,10 +151,15 @@ public class KMACXOF256 {
         return keccak_512.sha3Final();
     }
 
-    public static void printArray(byte[] input, String name) {
+    /**
+     * Used for testing. Prints out the byte array as byte separated hex characters.
+     * @param input byte[] to be printed.
+     * @param name name of array for clarity.
+     */
+    private static void printArray(byte[] input, String name) {
         System.out.print(name + ": ");
         for (int i = 0; i < input.length; i++) {
-            System.out.print(String.format("%x, ", input[i]));
+            System.out.print(String.format("%02X, ", input[i]));
         }
         System.out.println();
     }

@@ -181,10 +181,14 @@ public class Sha3 {
 
     }
 
-    public void printArray(long[] test) {
+    /**
+     * Used for testing. Prints out the state at various points as long separated hex characters.
+     * @param test long[] to be printed
+     */
+    private void printArray(long[] test) {
         System.out.print("permutation: ");
         for (long l : test) {
-            System.out.printf("%016x, ", l);
+            System.out.printf("%016X, ", l);
         }
         System.out.println();
     }
