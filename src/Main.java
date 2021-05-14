@@ -1,11 +1,9 @@
-import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Scanner;
 
 /**
- * Runs a command prompt that allows the user to perform various operations on a chosen file.
+ * Runs a command prompt that allows the user to perform various hashing and encrypting operations on a chosen file.
  */
 public class Main {
 
@@ -32,14 +30,19 @@ public class Main {
         sc.close();
     }
 
+    /**
+     * Lets the user either choose a file or enter text input that will then be returned as a byte[]
+     * @param sc Scanner used to accept users choice of input method
+     * @return byte[] of either read in file or user input String
+     */
     private static byte[] getInput(Scanner sc) {
-        int choice = -1;
+        int choice;
         System.out.println("Please choose either file input or text input:\n1. File\n2. Text\nInput Method: ");
         String s = sc.nextLine();
         try {
             choice = Integer.parseInt(s);
         } catch (NumberFormatException e) {
-
+            choice = -1;
         }
         if (choice == 1) {
             return FileIO.getFile();
@@ -67,6 +70,12 @@ public class Main {
         }
     }
 
+    /**
+     * Encrypts a byte[] using a password chosen by the user. Writes the encrypted byte[], along with the
+     * random bits and authentication tag, to a file of the user's choosing.
+     * @param inByte byte[] to encrypt
+     * @param sc scanner to get password from user
+     */
     private static void symmetricEncrypt(byte[] inByte, Scanner sc) {
         String pw = getPassword(sc);
         byte[] pwByte = pw.getBytes(StandardCharsets.UTF_8);
@@ -93,6 +102,12 @@ public class Main {
         FileIO.writeBytes(out);
     }
 
+    /**
+     * Decrypts a byte[] using a password provided by the user. If the authentication tag matches after decryption
+     * the result is written to a file of the user's choice, otherwise an error is printed and nothing is written out.
+     * @param inByte byte[] to be decrypted, includes random bits and authentication tag
+     * @param sc Scanner to get user password input
+     */
     private static void symmetricDecrypt(byte[] inByte, Scanner sc) {
         boolean authTag = true;
         String pw = getPassword(sc);
@@ -162,7 +177,7 @@ public class Main {
 
     /**
      * Gets a selection of mode from the user. If the user fails to enter an integer it sets the mode
-     * to an invalid number.
+     * to an invalid number. Potential modes are taken from the TCSS_487 Project Description.
      * @param sc Scanner to get input from the user.
      * @return Entered integer or -1 if non-integer entered.
      */
