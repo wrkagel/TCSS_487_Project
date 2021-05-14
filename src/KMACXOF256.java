@@ -155,7 +155,7 @@ public class KMACXOF256 {
      * @param input byte[] to be printed.
      * @param name name of array for clarity.
      */
-    private static void printArray(byte[] input, String name) {
+    public static void printArray(byte[] input, String name) {
         System.out.print(name + ": ");
         for (byte b : input) {
             System.out.printf("%02X, ", b);

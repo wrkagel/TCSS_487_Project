@@ -1,5 +1,9 @@
-import javax.swing.*;
-import java.io.*;
+import javax.swing.JFileChooser;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -21,13 +25,13 @@ public class FileIO {
                 try (FileInputStream inputStream = new FileInputStream(inFile)) {
                     return inputStream.readAllBytes();
                 } catch (FileNotFoundException e) {
-                    System.out.println("The file at " + inFile.getPath() + ". Could not be found.\n");
+                    System.out.println("The file at " + inFile.getPath() + ". Could not be found.");
                 } catch (IOException e) {
                     e.printStackTrace();
                     System.exit(-1);
                 }
             } else {
-                System.out.println("No file was chosen or there was an error. Returning to main menu.\n");
+                System.out.println("No file was chosen or there was an error. Returning to main menu.");
                 return null;
             }
         }
@@ -53,15 +57,15 @@ public class FileIO {
                         outputStream.write(hex.getBytes(StandardCharsets.UTF_8));
                     }
                 } else {
-                    System.out.println("There was an error writing to the file. Returning to main menu.\n");
+                    System.out.println("There was an error writing to the file. Returning to main menu.");
                 }
             } catch (FileNotFoundException e) {
-                System.out.println("The file at " + outFile.getPath() + ". Could not be found.\n");
+                System.out.println("The file at " + outFile.getPath() + ". Could not be found.");
             } catch (IOException e) {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("No file was chosen or there was an error. Returning to main menu.\n");
+            System.out.println("No file was chosen or there was an error. Returning to main menu.");
         }
 
     }
@@ -82,7 +86,7 @@ public class FileIO {
                     FileOutputStream outputStream = new FileOutputStream(outFile);
                     outputStream.write(outByte);
                 } else {
-                    System.out.println("There was an error writing to the file. Returning to main menu.\n");
+                    System.out.println("There was an error writing to the file. Returning to main menu.");
                 }
             } catch (FileNotFoundException e) {
                 System.out.println("The file at " + outFile.getPath() + ". Could not be found.");
@@ -90,7 +94,7 @@ public class FileIO {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("No file was chosen or there was an error. Returning to main menu.\n");
+            System.out.println("No file was chosen or there was an error. Returning to main menu.");
         }
 
     }

@@ -175,8 +175,6 @@ public class Sha3 {
         for (int i = 0; i < temp; i++) {
             md[md.length - temp + i] = ((byte) (st[i / 8] >>> (8 * (7 - i % 8))));
         }
-
-
         return md;
 
     }
