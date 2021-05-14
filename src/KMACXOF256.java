@@ -147,7 +147,6 @@ public class KMACXOF256 {
         System.arraycopy(x, 0, input, padN.length, x.length);
         Sha3 keccak_512 = new Sha3(l / 8);
         keccak_512.sha3Update(input);
-        byte[] md = new byte[l / 8];
         return keccak_512.sha3Final();
     }
 
@@ -158,8 +157,8 @@ public class KMACXOF256 {
      */
     private static void printArray(byte[] input, String name) {
         System.out.print(name + ": ");
-        for (int i = 0; i < input.length; i++) {
-            System.out.print(String.format("%02X, ", input[i]));
+        for (byte b : input) {
+            System.out.printf("%02X, ", b);
         }
         System.out.println();
     }

@@ -2,9 +2,15 @@ import javax.swing.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Controls the input and output from/to files for the program.
+ */
 public class FileIO {
 
-
+    /**
+     * Lets the user choose a file using JFileChooser and then reads it in as a byte[].
+     * @return The read in byte[]
+     */
     public static byte[] getFile() {
         while(true) {
             System.out.println("Please choose a file to operate on (*May need to tab to file chooser).");
@@ -15,7 +21,7 @@ public class FileIO {
                 try (FileInputStream inputStream = new FileInputStream(inFile)) {
                     return inputStream.readAllBytes();
                 } catch (FileNotFoundException e) {
-                    System.out.println("The file at " + inFile.getPath() + ". Could not be found.");
+                    System.out.println("The file at " + inFile.getPath() + ". Could not be found.\n");
                 } catch (IOException e) {
                     e.printStackTrace();
                     System.exit(-1);
@@ -27,6 +33,11 @@ public class FileIO {
         }
     }
 
+    /**
+     * Writes a byte array to a file chosen using JFileChooser. The bytes array is written out as a series of hex
+     * characters with capital letters and no spaces or other punctuation.
+     * @param outByte Data to write as a byte[]
+     */
     public static void writeHex(byte[] outByte) {
         System.out.println("Please choose a file to save to (*May need to tab to file chooser).");
         JFileChooser chooser = new JFileChooser();
@@ -45,7 +56,7 @@ public class FileIO {
                     System.out.println("There was an error writing to the file. Returning to main menu.\n");
                 }
             } catch (FileNotFoundException e) {
-                System.out.println("The file at " + outFile.getPath() + ". Could not be found.");
+                System.out.println("The file at " + outFile.getPath() + ". Could not be found.\n");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -55,6 +66,10 @@ public class FileIO {
 
     }
 
+    /**
+     * Writes a byte[] to a file chosen using JFileChooser. The byte[] is written directly to the file.
+     * @param outByte data to write as a byte[].
+     */
     public static void writeBytes(byte[] outByte) {
         System.out.println("Please choose a file to save to (*May need to tab to file chooser).");
         JFileChooser chooser = new JFileChooser();
