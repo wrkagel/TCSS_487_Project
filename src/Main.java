@@ -1,3 +1,5 @@
+import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Scanner;
@@ -20,7 +22,7 @@ public class Main {
         while(mode != 0) {
             mode = getMode(sc);
             if(mode > 0 && mode < 5) {
-                inByte = FileIO.getFile();
+                inByte = getInput(sc);
                 if(inByte != null) {
                     operation(mode, inByte, sc);
                 }
@@ -28,6 +30,25 @@ public class Main {
             System.out.println();
         }
         sc.close();
+    }
+
+    private static byte[] getInput(Scanner sc) {
+        int choice = -1;
+        System.out.println("Please choose either file input or text input:\n1. File\n2. Text\nInput Method: ");
+        String s = sc.nextLine();
+        try {
+            choice = Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+
+        }
+        if (choice == 1) {
+            return FileIO.getFile();
+        } else if (choice == 2) {
+            return FileIO.getText();
+        } else {
+            System.out.println(s + " is not a valid input choice. Returning to main menu.");
+            return null;
+        }
     }
 
     /**
@@ -88,7 +109,7 @@ public class Main {
         System.arraycopy(keka, 64, ka, 0, 64);
         byte[] out = KMACXOF256.compute(ke, new byte[0], data.length * 8, "SKE".getBytes(StandardCharsets.UTF_8));
         for (int i = 0; i < out.length; i++) {
-            out[i] = (byte) (out[i] ^ inByte[i + 64]);
+            out[i] = (byte) (out[i] ^ data[i]);
         }
         ka = KMACXOF256.compute(ka, out, 512, "SKA".getBytes(StandardCharsets.UTF_8));
         for (int i = 0; i < ka.length; i++) {
@@ -100,7 +121,7 @@ public class Main {
         if(authTag) {
             FileIO.writeBytes(out);
         } else {
-            System.out.println("Failed to validate cryptogram. No output will be written.\n");
+            System.out.println("Failed to validate. No output will be written.");
         }
     }
 
@@ -148,8 +169,8 @@ public class Main {
     private static int getMode(Scanner sc) {
         int mode;
         String input;
-        System.out.print("Please choose a mode by entering the corresponding number:\n1. Compute Hash" +
-                "\n2. Symmetrically encrypt a file using KMACXOF256\n3. " +
+        System.out.print("Please choose a mode by entering the corresponding number:\n1. Compute Hash of File\n" +
+                "2. Symmetrically encrypt a file using KMACXOF256\n3. " +
                 "Symmetrically decrypt a file using KMACXOF256\n4. Compute authentication tag\n" +
                 "0. Exit\nEnter mode: ");
         input = sc.nextLine();

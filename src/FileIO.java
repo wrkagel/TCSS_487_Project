@@ -1,4 +1,4 @@
-import javax.swing.JFileChooser;
+import javax.swing.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -97,5 +97,10 @@ public class FileIO {
             System.out.println("No file was chosen or there was an error. Returning to main menu.");
         }
 
+    }
+
+    public static byte[] getText() {
+        String in = JOptionPane.showInputDialog("Please enter the input text.");
+        return in.getBytes(StandardCharsets.UTF_8);
     }
 }
