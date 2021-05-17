@@ -1,4 +1,4 @@
-/*
+package Model;/*
     TCSS 487
     Project
     Walter Kagel
@@ -12,7 +12,7 @@ import java.util.Arrays;
  * Specifications taken from https://keccak.team/keccak_specs_summary.html and code developed
  * using the project at https://github.com/mjosaarinen/tiny_sha3 as a reference.
  */
-public class Sha3 {
+public class Keccak1600 {
 
     /**
      * Round Constant values for Keccak-1600. Values copied from the Round Constants table at
@@ -70,7 +70,7 @@ public class Sha3 {
      * that this class is designed to work with and is therefore not a variable.
      * @param mdlen message digest length
      */
-    Sha3(int mdlen) {
+    Keccak1600(int mdlen) {
         Arrays.fill(st, 0);
         this.mdlen = mdlen;
         this.rsize = 136;

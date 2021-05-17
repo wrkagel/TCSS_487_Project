@@ -1,4 +1,7 @@
+package Model;
+
 import java.nio.charset.StandardCharsets;
+
 
 /**
  * Computes the result of the KMACXOF256 function described in NIST.SP.800-185.
@@ -126,7 +129,7 @@ public class KMACXOF256 {
      * https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-185.pdf.
      * Note that because this function is only being used with KMACXOF256 n is never the empty string
      * and thus shake256 will never be called and thus is not implemented.
-     * @param x Main input as a byte[]
+     * @param x Control.Main input as a byte[]
      * @param l Length of desired output as an int
      * @param n Function name as a byte[]
      * @param s Customization string as a byte[]
@@ -145,7 +148,7 @@ public class KMACXOF256 {
         byte[] input = new byte[padN.length + x.length];
         System.arraycopy(padN, 0, input, 0, padN.length);
         System.arraycopy(x, 0, input, padN.length, x.length);
-        Sha3 keccak_512 = new Sha3(l / 8);
+        Keccak1600 keccak_512 = new Keccak1600(l / 8);
         keccak_512.sha3Update(input);
         return keccak_512.sha3Final();
     }

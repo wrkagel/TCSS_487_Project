@@ -1,13 +1,12 @@
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.Scanner;
 
 /**
  * Runs a command prompt that allows the user to perform various hashing and encrypting operations on a chosen file.
  */
-public class Main {
+public class Main2 {
 
     /**
      * Runs the program.
@@ -95,12 +94,9 @@ public class Main {
         System.arraycopy(test1, 0, temp, 1, 64);
         BigInteger h = new BigInteger(temp);
         BigInteger z = k.subtract(h.multiply(s)).mod(E521Curve.r);
-        if (z.compareTo(BigInteger.ZERO) < 0) z.add(E521Curve.p);
         byte[] out = new byte[132*2];
         System.arraycopy(h.toByteArray(), 0, out, 132 - h.toByteArray().length, h.toByteArray().length);
         System.arraycopy(z.toByteArray(), 0, out, out.length - z.toByteArray().length, z.toByteArray().length);
-        byte[] test = new byte[132];
-        System.arraycopy(out, 0, test, 0, 132);
         FileIO.writeBytes(out);
     }
 
@@ -118,7 +114,7 @@ public class Main {
         byte[] hPrime = new byte[65];
         hPrime[0] = 0;
         System.arraycopy(temp, 0, hPrime, 1, 64);
-        if ((new BigInteger(temp)).equals(h)) {
+        if ((new BigInteger(hPrime)).equals(h)) {
             System.out.println("validated");
         } else {
             System.out.println("Not validated");
@@ -168,7 +164,7 @@ public class Main {
         s = s.multiply(BigInteger.valueOf(4));
         byte[] z = new byte[131];
         System.arraycopy(inByte, 0, z, 0, 131);
-        E521Curve w = new E521Curve(new BigInteger(z), inByte[131] == 0 ? false : true);
+        E521Curve w = new E521Curve(new BigInteger(z), inByte[131] != 0);
         w = w.scalarMultiply(s);
         byte[] ke = new byte[64];
         byte[] ka = new byte[64];
