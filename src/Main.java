@@ -1,5 +1,7 @@
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Scanner;
 
 /**
@@ -19,7 +21,7 @@ public class Main {
 
         while(mode != 0) {
             mode = getMode(sc);
-            if(mode > 0 && mode < 5) {
+            if(mode > 0 && mode < 10) {
                 inByte = getInput(sc);
                 if(inByte != null) {
                     operation(mode, inByte, sc);
@@ -66,9 +68,141 @@ public class Main {
             case 2 -> symmetricEncrypt(inByte, sc);
             case 3 -> symmetricDecrypt(inByte, sc);
             case 4 -> computeTag(inByte, sc);
+            case 5 -> createKeyPair(sc);
+            case 6 -> ellipticalEncrypt(sc, inByte);
+            case 7 -> ellipticalDecrypt(inByte, sc);
+            case 8 -> generateSignature(inByte, sc);
+            case 9 -> validateSignature(inByte, sc);
             default -> System.out.println("Error with main.operation() switch statement.");
         }
     }
+
+    private static void generateSignature(byte[] inByte, Scanner sc) {
+        byte[] pw = getPassword(sc).getBytes(StandardCharsets.UTF_8);
+        byte[] temp = new byte[65];
+        temp[0] = 0;
+        System.arraycopy(KMACXOF256.compute(pw, new byte[0],
+                512, "K".getBytes(StandardCharsets.UTF_8)), 0, temp, 1, 64);
+        BigInteger s = new BigInteger(temp);
+        s = s.multiply(BigInteger.valueOf(4));
+        System.arraycopy(KMACXOF256.compute(s.toByteArray(), inByte,
+                512, "N".getBytes(StandardCharsets.UTF_8)), 0, temp, 1, 64);
+        BigInteger k = new BigInteger(temp);
+        k = k.multiply(BigInteger.valueOf(4));
+        E521Curve u = E521Curve.g.scalarMultiply(k);
+        byte [] test1 = KMACXOF256.compute(u.getX().toByteArray(), inByte,
+                512, "T".getBytes(StandardCharsets.UTF_8));
+        System.arraycopy(test1, 0, temp, 1, 64);
+        BigInteger h = new BigInteger(temp);
+        BigInteger z = k.subtract(h.multiply(s)).mod(E521Curve.r);
+        if (z.compareTo(BigInteger.ZERO) < 0) z.add(E521Curve.p);
+        byte[] out = new byte[132*2];
+        System.arraycopy(h.toByteArray(), 0, out, 132 - h.toByteArray().length, h.toByteArray().length);
+        System.arraycopy(z.toByteArray(), 0, out, out.length - z.toByteArray().length, z.toByteArray().length);
+        byte[] test = new byte[132];
+        System.arraycopy(out, 0, test, 0, 132);
+        FileIO.writeBytes(out);
+    }
+
+    private static void validateSignature(byte[] inByte, Scanner sc) {
+        byte[] m = FileIO.getFile();
+        E521Curve v = new E521Curve(new BigInteger("3528648883931951250008336645058857502635029786422946993282955126229324713094170609568248071925130573728678195522456187848315505452052918617037029777469449455"), new BigInteger("2207840549414269915595267378931222222247731507075726412957805245355061846868081925709084412409617354842198311851013884828550843736519843463251423300220746319"));
+        byte[] hByte = new byte[132];
+        System.arraycopy(inByte, 0, hByte, 0, 132);
+        byte[] zByte = new byte[132];
+        System.arraycopy(inByte, 132, zByte, 0, 132);
+        BigInteger h = new BigInteger(hByte);
+        BigInteger z = new BigInteger(zByte);
+        E521Curve u = E521Curve.g.scalarMultiply(z).add(v.scalarMultiply(h));
+        byte[] temp = KMACXOF256.compute(u.getX().toByteArray(), m, 512, "T".getBytes(StandardCharsets.UTF_8));
+        byte[] hPrime = new byte[65];
+        hPrime[0] = 0;
+        System.arraycopy(temp, 0, hPrime, 1, 64);
+        if ((new BigInteger(temp)).equals(h)) {
+            System.out.println("validated");
+        } else {
+            System.out.println("Not validated");
+        }
+
+    }
+
+    private static void ellipticalEncrypt(Scanner sc, byte[] inByte) {
+        E521Curve v = new E521Curve(new BigInteger("3528648883931951250008336645058857502635029786422946993282955126229324713094170609568248071925130573728678195522456187848315505452052918617037029777469449455"), new BigInteger("2207840549414269915595267378931222222247731507075726412957805245355061846868081925709084412409617354842198311851013884828550843736519843463251423300220746319"));
+        SecureRandom r = new SecureRandom();
+        byte[] k = new byte[65];
+        r.nextBytes(k);
+        System.arraycopy(k, 0, k, 1, k.length - 1);
+        k[0] = 0;
+        BigInteger k4 = new BigInteger(k);
+        k4 = k4.multiply(BigInteger.valueOf(4));
+        E521Curve w = v.scalarMultiply(k4);
+        E521Curve z = E521Curve.g.scalarMultiply(k4);
+        System.out.println(w);
+        byte[] ke = new byte[64];
+        byte[] ka = new byte[64];
+        byte[] keka = KMACXOF256.compute(w.getX().toByteArray(), new byte[0], 1024, "P".getBytes(StandardCharsets.UTF_8));
+        System.arraycopy(keka, 0, ke, 0, 64);
+        System.arraycopy(keka, 64, ka, 0, 64);
+        byte[] out = new byte[132 + inByte.length + 64];
+        System.arraycopy(KMACXOF256.compute(ke, new byte[0], inByte.length * 8, "PKE".getBytes(StandardCharsets.UTF_8)),
+                0, out, 132, inByte.length);
+        for (int i = 0; i < inByte.length; i++) {
+            out[i + 132] = (byte) (out[i + 132] ^ inByte[i]);
+        }
+        System.arraycopy(KMACXOF256.compute(ka, inByte, 512, "PKA".getBytes(StandardCharsets.UTF_8)), 0,
+                out, inByte.length + 132, 64);
+        byte[] temp = z.getX().toByteArray();
+        System.arraycopy(temp, 0, out, 131 - temp.length, temp.length);
+        out[131] = z.getY().mod(BigInteger.TWO).byteValueExact();
+
+        FileIO.writeBytes(out);
+    }
+
+    private static void ellipticalDecrypt(byte[] inByte, Scanner sc) {
+        boolean authTag = true;
+        byte[] pw = getPassword(sc).getBytes(StandardCharsets.UTF_8);
+        byte[] temp = new byte[65];
+        System.arraycopy(KMACXOF256.compute(pw, new byte[0],
+                512, "K".getBytes(StandardCharsets.UTF_8)), 0, temp, 1, 64);
+        BigInteger s = new BigInteger(temp);
+        s = s.multiply(BigInteger.valueOf(4));
+        byte[] z = new byte[131];
+        System.arraycopy(inByte, 0, z, 0, 131);
+        E521Curve w = new E521Curve(new BigInteger(z), inByte[131] == 0 ? false : true);
+        w = w.scalarMultiply(s);
+        byte[] ke = new byte[64];
+        byte[] ka = new byte[64];
+        byte[] keka = KMACXOF256.compute(w.getX().toByteArray(), new byte[0], 1024, "P".getBytes(StandardCharsets.UTF_8));
+        System.arraycopy(keka, 0, ke, 0, 64);
+        System.arraycopy(keka, 64, ka, 0, 64);
+        byte[] m = new byte[inByte.length - 132 - 64];
+        m = KMACXOF256.compute(ke, new byte[0], m.length * 8, "PKE".getBytes(StandardCharsets.UTF_8));
+        for (int i = 0; i < m.length; i++) {
+            m[i] = (byte) (m[i] ^ inByte[i + 132]);
+        }
+        ka = KMACXOF256.compute(ka, m, 512, "SKA".getBytes(StandardCharsets.UTF_8));
+        for (int i = 0; i < ka.length; i++) {
+            if(ka[i] != inByte[inByte.length - 64 + i]) {
+                authTag = false;
+                break;
+            }
+        }
+        if(authTag) {
+            FileIO.writeBytes(m);
+        } else {
+            System.out.println("Failed to validate. No output will be written.");
+        }
+    }
+
+    private static void createKeyPair(Scanner sc) {
+        String pw = getPassword(sc);
+        byte[] temp = new byte[65];
+        System.arraycopy(KMACXOF256.compute(pw.getBytes(StandardCharsets.UTF_8), new byte[0],
+                512, "K".getBytes(StandardCharsets.UTF_8)), 0, temp, 1, 64);
+        BigInteger s = new BigInteger(temp);
+        s = s.multiply(BigInteger.valueOf(4));
+        E521Curve v = E521Curve.g.scalarMultiply(s);
+        FileIO.writeString(v.toString());}
 
     /**
      * Encrypts a byte[] using a password chosen by the user. Writes the encrypted byte[], along with the
@@ -187,6 +321,8 @@ public class Main {
         System.out.print("Please choose a mode by entering the corresponding number:\n1. Compute Hash of File\n" +
                 "2. Symmetrically encrypt a file using KMACXOF256\n3. " +
                 "Symmetrically decrypt a file using KMACXOF256\n4. Compute authentication tag\n" +
+                "5. Create a key pair\n6. Asymmetrically encrypt a file\n" +
+                "7. Asymmetrically decrypt a file\n8. Generate signature.\n9. Validate signature." +
                 "0. Exit\nEnter mode: ");
         input = sc.nextLine();
         try {

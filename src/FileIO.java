@@ -99,8 +99,34 @@ public class FileIO {
 
     }
 
+    public static void writeString(String outString) {
+        System.out.println("Please choose a file to save to (*May need to tab to file chooser).");
+        JFileChooser chooser = new JFileChooser();
+        File outFile;
+        if(JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(null)) {
+            outFile = chooser.getSelectedFile();
+            try {
+                outFile.delete();
+                if(outFile.createNewFile()) {
+                    FileOutputStream outputStream = new FileOutputStream(outFile);
+                    outputStream.write(outString.getBytes(StandardCharsets.UTF_8));
+                } else {
+                    System.out.println("There was an error writing to the file. Returning to main menu.");
+                }
+            } catch (FileNotFoundException e) {
+                System.out.println("The file at " + outFile.getPath() + ". Could not be found.");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("No file was chosen or there was an error. Returning to main menu.");
+        }
+
+    }
+
     public static byte[] getText() {
         String in = JOptionPane.showInputDialog("Please enter the input text.");
         return in.getBytes(StandardCharsets.UTF_8);
     }
+
 }
