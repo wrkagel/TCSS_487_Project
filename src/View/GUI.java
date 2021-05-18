@@ -96,6 +96,49 @@ public class GUI extends JFrame{
         });
         center.add(authTag);
 
+        //Create key pair
+        JButton keyPair = new JButton("Create Key Pair");
+        keyPair.addActionListener(e -> {
+            cont.keyPair();
+        });
+        center.add(keyPair);
+
+        //Asymmetric Encryption
+        JButton asEncrypt = new JButton("Asymmetric Encrypt");
+        asEncrypt.addActionListener(e -> {
+            if(textInputCheck.isSelected()) {
+                cont.asEncrypt(input.getText().getBytes(StandardCharsets.UTF_8));
+            } else {
+                cont.asEncrypt(null);
+            }
+        });
+        center.add(asEncrypt);
+
+        //Asymmetric Decryption
+        JButton asDecrypt = new JButton("Asymmetric Decrypt");
+        asDecrypt.addActionListener(e -> {
+            if(textInputCheck.isSelected()) {
+                cont.asDecrypt(input.getText().getBytes(StandardCharsets.UTF_8));
+            } else {
+                cont.asDecrypt(null);
+            }
+        });
+        center.add(asDecrypt);
+
+        //Create Digital Signature
+        JButton createSig = new JButton("Create Digital Signature");
+        createSig.addActionListener(e -> {
+        cont.createSig();
+        });
+        center.add(createSig);
+
+        //Verify Digital Signature
+        JButton verifySig = new JButton("Verify Digital Signature");
+        verifySig.addActionListener(e -> {
+        cont.verifySig();
+        });
+        center.add(verifySig);
+
         this.add(center, BorderLayout.CENTER);
     }
 

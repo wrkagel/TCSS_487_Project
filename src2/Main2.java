@@ -198,7 +198,8 @@ public class Main2 {
         BigInteger s = new BigInteger(temp);
         s = s.multiply(BigInteger.valueOf(4));
         E521Curve v = E521Curve.g.scalarMultiply(s);
-        FileIO.writeString(v.toString());}
+        FileIO.writeString(v.toString());
+    }
 
     /**
      * Encrypts a byte[] using a password chosen by the user. Writes the encrypted byte[], along with the
