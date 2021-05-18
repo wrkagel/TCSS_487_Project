@@ -1,7 +1,6 @@
 package View;
 
 import Control.Controller;
-import Model.FileIO;
 
 import javax.swing.*;
 import java.awt.*;
@@ -52,6 +51,8 @@ public class GUI extends JFrame{
     private void createCenter() {
         JPanel center = new JPanel();
         center.setLayout(new GridLayout(9, 1));
+
+        //Hash button
         JButton hash = new JButton("Compute Hash");
         hash.addActionListener(e -> {
             if(textInputCheck.isSelected()) {
@@ -61,6 +62,40 @@ public class GUI extends JFrame{
             }
         });
         center.add(hash);
+
+        //Symmetric Encrypt
+        JButton symEncrypt = new JButton("Symmetric Encrypt");
+        symEncrypt.addActionListener(e -> {
+            if(textInputCheck.isSelected()) {
+                cont.symmetricEncrypt(input.getText().getBytes(StandardCharsets.UTF_8));
+            } else {
+                cont.symmetricEncrypt(null);
+            }
+        });
+        center.add(symEncrypt);
+
+        //Symmetric Decrypt
+        JButton symDecrypt = new JButton("Symmetric Decrypt");
+        symDecrypt.addActionListener(e -> {
+            if(textInputCheck.isSelected()) {
+                cont.symmetricDecrypt(input.getText().getBytes(StandardCharsets.UTF_8));
+            } else {
+                cont.symmetricDecrypt(null);
+            }
+        });
+        center.add(symDecrypt);
+
+        //Authentication Tag
+        JButton authTag = new JButton("Authentication Tag");
+        authTag.addActionListener(e -> {
+            if(textInputCheck.isSelected()) {
+                cont.authentication(input.getText().getBytes(StandardCharsets.UTF_8));
+            } else {
+                cont.authentication(null);
+            }
+        });
+        center.add(authTag);
+
         this.add(center, BorderLayout.CENTER);
     }
 

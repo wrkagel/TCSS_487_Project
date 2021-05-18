@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Controls the input and output from/to files for the program.
  */
-public class FileIO {
+public class IO {
 
     /**
      * Lets the user choose a file using JFileChooser and then reads it in as a byte[].
@@ -23,7 +23,7 @@ public class FileIO {
         while(true) {
             String result = null;
             JFileChooser chooser = new JFileChooser(".");
-            chooser.setDialogTitle("Choose a file to hash.");
+            chooser.setDialogTitle(message);
             File inFile;
             if(JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(view)) {
                 inFile = chooser.getSelectedFile();
@@ -37,7 +37,7 @@ public class FileIO {
                 }
             } else {
                 result = "No file was chosen or there was an error.";
-                JOptionPane.showMessageDialog(view, result);
+                showMessage(view, result);
                 return null;
             }
         }
@@ -78,7 +78,7 @@ public class FileIO {
         } else {
             result = "No file was chosen or there was an error.";
         }
-        JOptionPane.showMessageDialog(view, result);
+        showMessage(view, result);
 
     }
 
@@ -88,6 +88,7 @@ public class FileIO {
      */
     public static void writeBytes(byte[] outByte, GUI view, String message) {
         JFileChooser chooser = new JFileChooser(".");
+        chooser.setDialogTitle(message);
         File outFile;
         String result = "Successfully wrote to file.";
         if(JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(view)) {
@@ -109,7 +110,16 @@ public class FileIO {
         } else {
             result = "No file was chosen or there was an error. Returning to main menu.";
         }
-        JOptionPane.showMessageDialog(view, result);
+        showMessage(view, result);
+    }
+
+    public static byte[] getPassword(GUI view, String message) {
+        String input = JOptionPane.showInputDialog(view, message);
+        return input == null ? null : input.getBytes(StandardCharsets.UTF_8);
+    }
+
+    public static void showMessage(GUI view, String message) {
+        JOptionPane.showMessageDialog(view, message);
     }
 
 }
