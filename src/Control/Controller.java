@@ -8,7 +8,6 @@ import View.GUI;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.Arrays;
 
 public class Controller {
 
@@ -131,7 +130,7 @@ public class Controller {
         byte[] out = new byte[132];
         byte[] x = v.getX().toByteArray();
         System.arraycopy(x, 0, out, 131 - x.length, x.length);
-        out[131] = (byte) (v.getY().testBit(0) == true ? 1 : 0);
+        out[131] = (byte) (v.getY().testBit(0) ? 1 : 0);
         IO.writeBytes(out, view, "Save public key.");
     }
 
@@ -169,7 +168,7 @@ public class Controller {
                 out, out.length - 64, 64);
         byte[] temp = z.getX().toByteArray();
         System.arraycopy(temp, 0, out, 131 - temp.length, temp.length);
-        out[131] = (byte) (z.getY().testBit(0) == true ? 1 : 0);
+        out[131] = (byte) (z.getY().testBit(0) ? 1 : 0);
         IO.writeBytes(out, view, "Save encrypted file.");
     }
 

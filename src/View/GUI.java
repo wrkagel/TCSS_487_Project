@@ -98,9 +98,7 @@ public class GUI extends JFrame{
 
         //Create key pair
         JButton keyPair = new JButton("Create Key Pair");
-        keyPair.addActionListener(e -> {
-            cont.keyPair();
-        });
+        keyPair.addActionListener(e -> cont.keyPair());
         center.add(keyPair);
 
         //Asymmetric Encryption
@@ -127,16 +125,12 @@ public class GUI extends JFrame{
 
         //Create Digital Signature
         JButton createSig = new JButton("Create Digital Signature");
-        createSig.addActionListener(e -> {
-        cont.createSig();
-        });
+        createSig.addActionListener(e -> cont.createSig());
         center.add(createSig);
 
         //Verify Digital Signature
         JButton verifySig = new JButton("Verify Digital Signature");
-        verifySig.addActionListener(e -> {
-        cont.verifySig();
-        });
+        verifySig.addActionListener(e -> cont.verifySig());
         center.add(verifySig);
 
         this.add(center, BorderLayout.CENTER);
@@ -153,7 +147,4 @@ public class GUI extends JFrame{
         this.cont = cont;
     }
 
-    public String getInputText() {
-        return input.getText();
-    }
 }

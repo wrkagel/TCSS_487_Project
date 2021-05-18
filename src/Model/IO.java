@@ -20,27 +20,25 @@ public class IO {
      * @return The read in byte[]
      */
     public static byte[] getFile(GUI view, String message) {
-        while(true) {
-            String result = null;
-            JFileChooser chooser = new JFileChooser(".");
-            chooser.setDialogTitle(message);
-            File inFile;
-            if(JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(view)) {
-                inFile = chooser.getSelectedFile();
-                try (FileInputStream inputStream = new FileInputStream(inFile)) {
-                    return inputStream.readAllBytes();
-                } catch (FileNotFoundException e) {
-                    result = "The file at " + inFile.getPath() + ". Could not be found.";
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    System.exit(-1);
-                }
-            } else {
-                result = "No file was chosen or there was an error.";
-                showMessage(view, result);
-                return null;
+        String result = "Result string of getFile not set.";
+        JFileChooser chooser = new JFileChooser(".");
+        chooser.setDialogTitle(message);
+        File inFile;
+        if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(view)) {
+            inFile = chooser.getSelectedFile();
+            try (FileInputStream inputStream = new FileInputStream(inFile)) {
+                return inputStream.readAllBytes();
+            } catch (FileNotFoundException e) {
+                result = "The file at " + inFile.getPath() + ". Could not be found.";
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(-1);
             }
+        } else{
+            result = "No file was chosen or there was an error.";
         }
+        showMessage(view, result);
+        return null;
     }
 
     /**
@@ -94,12 +92,11 @@ public class IO {
         if(JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(view)) {
             outFile = chooser.getSelectedFile();
             try {
-                outFile.delete();
-                if(outFile.createNewFile()) {
+                if(outFile.delete() && outFile.createNewFile()) {
                     FileOutputStream outputStream = new FileOutputStream(outFile);
                     outputStream.write(outByte);
                 } else {
-                    result = "There was an error writing to the file. Returning to main menu.";
+                    result = "There was an error writing to the file.";
                 }
             } catch (FileNotFoundException e) {
                 result = "The file at " + outFile.getPath() + ". Could not be found.";
@@ -108,7 +105,7 @@ public class IO {
                 System.exit(-1);
             }
         } else {
-            result = "No file was chosen or there was an error. Returning to main menu.";
+            result = "No file was chosen or there was an error.";
         }
         showMessage(view, result);
     }
