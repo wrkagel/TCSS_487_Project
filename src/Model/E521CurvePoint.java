@@ -2,6 +2,13 @@ package Model;
 
 import java.math.BigInteger;
 
+/*
+    TCSS 487
+    Project
+    Walter Kagel
+    5/18/2021
+ */
+
 /**
  * Stores a point on the E-521 curve defined in
  * "A note on high-security general-purpose elliptic curves" by Diego F. Aranha,

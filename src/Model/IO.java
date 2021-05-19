@@ -10,6 +10,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+/*
+    TCSS 487
+    Project
+    Walter Kagel
+    5/19/2021
+ */
+
 /**
  * Controls the input and output from/to files for the program.
  */

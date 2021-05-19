@@ -2,6 +2,13 @@ package Control;
 
 import View.GUI;
 
+/*
+    TCSS 487
+    Project
+    Walter Kagel
+    5/19/2021
+ */
+
 /**
  * Contains main for an application that allows a user to perform various cryptographic functions on files
  * and input text. These functions are hashing, symmetric encryption, symmetric decryption, and creating a tag using

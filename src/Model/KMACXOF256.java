@@ -2,6 +2,13 @@ package Model;
 
 import java.nio.charset.StandardCharsets;
 
+/*
+    TCSS 487
+    Project
+    Walter Kagel
+    5/19/2021
+ */
+
 
 /**
  * Computes the result of the KMACXOF256 function described in NIST.SP.800-185.
@@ -12,7 +19,8 @@ import java.nio.charset.StandardCharsets;
 public class KMACXOF256 {
 
     /**
-     * Used to mask individual bits of a byte.
+     * Used for input to the cShake256 function. Could be hardcoded, but left here to allow for reuse of
+     * cShake256 code if desired.
      */
     private static final byte[] kmac = "KMAC".getBytes(StandardCharsets.UTF_8);
 

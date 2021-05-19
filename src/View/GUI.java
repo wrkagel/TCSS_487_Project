@@ -6,6 +6,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.nio.charset.StandardCharsets;
 
+/*
+    TCSS 487
+    Project
+    Walter Kagel
+    5/19/2021
+ */
+
 /**
  * The GUI of the application. Contains the area for text input and the buttons to run the functions.
  */

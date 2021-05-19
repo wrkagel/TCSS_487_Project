@@ -1,8 +1,10 @@
-package Model;/*
+package Model;
+
+/*
     TCSS 487
     Project
     Walter Kagel
-    4/25/2021
+    4/27/2021
  */
 
 import java.util.Arrays;

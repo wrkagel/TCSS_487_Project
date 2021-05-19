@@ -9,6 +9,13 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 
+/*
+    TCSS 487
+    Project
+    Walter Kagel
+    5/19/2021
+ */
+
 /**
  * Contains all functions that will run after the user presses a button on the application.
  */
