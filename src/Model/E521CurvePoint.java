@@ -62,7 +62,7 @@ public class E521CurvePoint {
     }
 
     /**
-     * Create a curve point with a given x coordinate and a least significant bit of the y coordinate.
+     * Create a curve point with a given x coordinate and the least significant bit of the y coordinate.
      * @param x x coordinate
      * @param yLsb denotes even or odd y value via least significant bit of y
      * @throws IllegalArgumentException if no such curve point exists.
@@ -168,28 +168,27 @@ public class E521CurvePoint {
     private static BigInteger calculateY(BigInteger x, boolean yLsb) {
         BigInteger radicand = BigInteger.ONE.subtract(x.modPow(BigInteger.TWO, p));
         radicand = radicand.multiply(BigInteger.ONE.subtract(d.multiply(x.modPow(BigInteger.TWO, p))).modInverse(p));
-        return sqrt(radicand, p, yLsb);
+        return sqrt(radicand, yLsb);
     }
 
     /**
      * Compute a square root of v mod p with a specified least significant bit, if such a root exists.
      * Taken from the project assignment specifications.
      * @param   v   the radicand.
-     * @param   p   the modulus (must satisfy p mod 4 = 3).*
      * @param   lsb desired least significant bit (true: 1, false: 0).
      * @return  a square root r of v mod p with r mod 2 = 1 iff lsb = true if such a root exists, otherwise null.
      */
-    private static BigInteger sqrt(BigInteger v, BigInteger p, boolean lsb) {
-        assert (p.testBit(0) && p.testBit(1)); // p = 3 (mod 4)
+    private static BigInteger sqrt(BigInteger v, boolean lsb) {
+        assert (E521CurvePoint.p.testBit(0) && E521CurvePoint.p.testBit(1)); // p = 3 (mod 4)
         if (v.signum() == 0) {
             return BigInteger.ZERO;
         }
-        BigInteger r = v.modPow(p.shiftRight(2).add(BigInteger.ONE), p);
+        BigInteger r = v.modPow(E521CurvePoint.p.shiftRight(2).add(BigInteger.ONE), E521CurvePoint.p);
         if (r.testBit(0) != lsb) {
-            r = p.subtract(r); // correct the lsb
+            r = E521CurvePoint.p.subtract(r); // correct the lsb
 
         }
-        return (r.multiply(r).subtract(v).mod(p).signum() == 0) ? r : null;
+        return (r.multiply(r).subtract(v).mod(E521CurvePoint.p).signum() == 0) ? r : null;
     }
 
     /**
@@ -197,12 +196,7 @@ public class E521CurvePoint {
      * @return (x, y)
      */
     public String toString() {
-        StringBuilder sb = new StringBuilder("(");
-        sb.append(x.toString());
-        sb.append(", ");
-        sb.append(y.toString());
-        sb.append(")");
-        return sb.toString();
+        return "(" + x.toString() + ", " + y.toString() + ")";
     }
 
 }

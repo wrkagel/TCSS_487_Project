@@ -35,19 +35,24 @@ public class GUI extends JFrame{
     private Controller cont;
 
     /**
+     * Holds the screen size.
+     */
+    private Dimension screenSize;
+
+    /**
      * Constructs the GUI. Note that the controller must be set after construction or errors will occur when attempting
      * to use any of the buttons.
      */
     public GUI() {
         this.setTitle("TCSS 487: Project by wrkagel");
         Toolkit t = Toolkit.getDefaultToolkit();
-        Dimension d = t.getScreenSize();
+        screenSize = t.getScreenSize();
+        this.setBounds(0, 0, (int) (screenSize.getWidth() / 1.5), (int) (screenSize.getHeight() / 1.5));
         this.setLayout(new BorderLayout());
         createMenu();
-        createWest();
+        createEast();
         createCenter();
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.pack();
         this.setVisible(true);
     }
 
@@ -85,9 +90,9 @@ public class GUI extends JFrame{
     /**
      * Creates and sets the buttons of the application. Contains all action calls to the controller.
      */
-    private void createCenter() {
-        JPanel center = new JPanel();
-        center.setLayout(new GridLayout(9, 1));
+    private void createEast() {
+        JPanel east = new JPanel();
+        east.setLayout(new GridLayout(9, 1));
 
         //Hash button
         JButton hash = new JButton("Compute Hash");
@@ -98,7 +103,8 @@ public class GUI extends JFrame{
                 cont.computeHash(null);
             }
         });
-        center.add(hash);
+        hash.setToolTipText("Create a hash of the input using KMACXOF256 and save it to a file.");
+        east.add(hash);
 
         //Symmetric Encrypt
         JButton symEncrypt = new JButton("Symmetric Encrypt");
@@ -109,7 +115,8 @@ public class GUI extends JFrame{
                 cont.symmetricEncrypt(null);
             }
         });
-        center.add(symEncrypt);
+        symEncrypt.setToolTipText("Encrypt the input using KMACXOF256 and save it to a file.");
+        east.add(symEncrypt);
 
         //Symmetric Decrypt
         JButton symDecrypt = new JButton("Symmetric Decrypt");
@@ -120,7 +127,8 @@ public class GUI extends JFrame{
                 cont.symmetricDecrypt(null);
             }
         });
-        center.add(symDecrypt);
+        symDecrypt.setToolTipText("Decrypt the input using KMACXOF256 and save it to a file.");
+        east.add(symDecrypt);
 
         //Authentication Tag
         JButton authTag = new JButton("Authentication Tag");
@@ -131,12 +139,15 @@ public class GUI extends JFrame{
                 cont.authentication(null);
             }
         });
-        center.add(authTag);
+        authTag.setToolTipText("Make an authentication tag \"MAC\" for the input and save it to a file.");
+        east.add(authTag);
 
         //Create key pair
         JButton keyPair = new JButton("Create Key Pair");
         keyPair.addActionListener(e -> cont.keyPair());
-        center.add(keyPair);
+        keyPair.setToolTipText("Create a public key based on the entered password using the E521 curve (and KMACXOF256) " +
+                "and save it to a file.");
+        east.add(keyPair);
 
         //Asymmetric Encryption
         JButton asEncrypt = new JButton("Asymmetric Encrypt");
@@ -147,7 +158,9 @@ public class GUI extends JFrame{
                 cont.asEncrypt(null);
             }
         });
-        center.add(asEncrypt);
+        asEncrypt.setToolTipText("Encrypt the input based on a public key file using the E521 curve (and KMACXOF256) " +
+                "and save it to a file.");
+        east.add(asEncrypt);
 
         //Asymmetric Decryption
         JButton asDecrypt = new JButton("Asymmetric Decrypt");
@@ -158,29 +171,37 @@ public class GUI extends JFrame{
                 cont.asDecrypt(null);
             }
         });
-        center.add(asDecrypt);
+        asDecrypt.setToolTipText("Decrypt the input based on the entered password using the E521 curve (and KMACXOF256) " +
+                "and save it to a file.");
+        east.add(asDecrypt);
 
         //Create Digital Signature
         JButton createSig = new JButton("Create Digital Signature");
         createSig.addActionListener(e -> cont.createSig());
-        center.add(createSig);
+        createSig.setToolTipText("Create a digital signature based on a chosen file and entered password, then save " +
+                "the signature to a file.");
+        east.add(createSig);
 
         //Verify Digital Signature
         JButton verifySig = new JButton("Verify Digital Signature");
         verifySig.addActionListener(e -> cont.verifySig());
-        center.add(verifySig);
+        verifySig.setToolTipText("Verify a digital signature by choosing a signature file, the associated file, " +
+                "and the associated public key. Verification is shown via a popup message.");
+        east.add(verifySig);
 
-        this.add(center, BorderLayout.CENTER);
+        east.setPreferredSize(new Dimension((int) (screenSize.getWidth() * 0.1), 0));
+
+        this.add(east, BorderLayout.EAST);
     }
 
     /**
      * Creates the text input area of the application.
      */
-    private void createWest() {
+    private void createCenter() {
         input.setEditable(false);
         input.setBackground(Color.LIGHT_GRAY);
         JScrollPane pane = new JScrollPane(input);
-        this.add(pane, BorderLayout.WEST);
+        this.add(pane, BorderLayout.CENTER);
     }
 
 }

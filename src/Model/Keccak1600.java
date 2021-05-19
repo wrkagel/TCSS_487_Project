@@ -75,6 +75,7 @@ public class Keccak1600 {
     Keccak1600(int mdlen) {
         Arrays.fill(st, 0);
         this.mdlen = mdlen;
+        //rsize is hardcoded here for simplicity.
         this.rsize = 136;
         this.pt = 0;
     }
