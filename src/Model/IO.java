@@ -17,6 +17,8 @@ public class IO {
 
     /**
      * Lets the user choose a file using JFileChooser and then reads it in as a byte[].
+     * @param view GUI that the JOptionPane will be associated with.
+     * @param message Message to display on JOptionPane
      * @return The read in byte[]
      */
     public static byte[] getFile(GUI view, String message) {
@@ -45,6 +47,8 @@ public class IO {
      * Writes a byte array to a file chosen using JFileChooser. The bytes array is written out as a series of hex
      * characters with capital letters and no spaces or other punctuation.
      * @param outByte Data to write as a byte[]
+     * @param view GUI that the JOptionPane will be associated with.
+     * @param message Message to display on JOptionPane
      */
     public static void writeHex(byte[] outByte, GUI view, String message) {
         String result = "Successfully wrote to file.";
@@ -83,6 +87,8 @@ public class IO {
     /**
      * Writes a byte[] to a file chosen using JFileChooser. The byte[] is written directly to the file.
      * @param outByte data to write as a byte[].
+     * @param view GUI that the JOptionPane will be associated with.
+     * @param message Message to display on JOptionPane
      */
     public static void writeBytes(byte[] outByte, GUI view, String message) {
         JFileChooser chooser = new JFileChooser(".");
@@ -110,11 +116,22 @@ public class IO {
         showMessage(view, result);
     }
 
+    /**
+     * Gets a password from the user.
+     * @param view GUI that the JOptionPane will be associated with.
+     * @param message Message to display on JOptionPane
+     * @return user password as byte[]
+     */
     public static byte[] getPassword(GUI view, String message) {
         String input = JOptionPane.showInputDialog(view, message);
         return input == null ? null : input.getBytes(StandardCharsets.UTF_8);
     }
 
+    /**
+     * Shows a message to the user using a standard dialog box.
+     * @param view GUI that the JOptionPane will be associated with
+     * @param message Message to display.
+     */
     public static void showMessage(GUI view, String message) {
         JOptionPane.showMessageDialog(view, message);
     }

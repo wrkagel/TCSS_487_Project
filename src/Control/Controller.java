@@ -9,15 +9,32 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 
+/**
+ * Contains all functions that will run after the user presses a button on the application.
+ */
 public class Controller {
 
+    /**
+     * Used so that the controller can pass the GUI on to the IO system.
+     */
     private final GUI view;
 
+    /**
+     * Instantiates a controller.
+     * @param view The GUI for the application.
+     */
     public Controller(GUI view) {
         this.view = view;
     }
 
+    /**
+     * Computes a hash from a byte[] using KMACXOF256.
+     * The hash is written out to a file of the user's choice as a string of hexadecimal characters that are
+     * byte separated.
+     * @param inByte contains a byte[] of user text input from the GUI or null if using file input.
+     */
     public void computeHash(byte[] inByte) {
+        //If null then use IO system to read in a file of the user's choice.
         if(inByte == null) {
             inByte = IO.getFile(view, "Select file to hash.");
             if(inByte == null) return;
@@ -28,11 +45,19 @@ public class Controller {
         IO.writeHex(outByte, view, "Save resulting hash to a file.");
     }
 
+    /**
+     * Symmetrically encrypt a byte[] using KMACXOF256.
+     * The encrypted byte[] is written out to a file of the user's choice where the first 64 bytes are the random
+     * bits z, the last 64 bytes are the tag t, and the remaining middle bytes are the encrypted byte[].
+     * @param inByte contains a byte[] of user text input from the GUI or null if using file input.
+     */
     public void symmetricEncrypt(byte[] inByte) {
+        //If null then use IO system to read in a file of the user's choice.
         if(inByte == null) {
             inByte = IO.getFile(view, "Select file to encrypt.");
             if(inByte == null) return;
         }
+        //Get the password from the user.
         byte[] pw = IO.getPassword(view, "Enter the password to use during encryption.");
         if (pw == null) {
             IO.showMessage(view, "No password entered. Canceling operation.");
@@ -44,6 +69,7 @@ public class Controller {
         byte[] ka = new byte[64];
         byte[] zpw = new byte[64 + pw.length];
         byte[] out = new byte[128 + inByte.length];
+        //Encryption algorithm
         r.nextBytes(z);
         System.arraycopy(z, 0, zpw, 0, z.length);
         System.arraycopy(z, 0, out, 0, z.length);
@@ -58,15 +84,26 @@ public class Controller {
         }
         System.arraycopy(KMACXOF256.compute(ka, inByte, 512, "SKA".getBytes(StandardCharsets.UTF_8)), 0,
                 out, inByte.length + 64, 64);
+        //Write out result
         IO.writeBytes(out, view, "Save encrypted file.");
     }
 
+    /**
+     * Symmetrically decrypt a byte[] using KMACXOF256.
+     * Decrypted byte[] will be saved to a file of the user's choice.
+     * The byte[] to be decrypted is assumed to have the first 64 bytes be the random bits z, the last 64 bytes be
+     * the tag t, and the middle bytes be the encrypted bytes.
+     * @param inByte contains a byte[] of user text input from the GUI or null if using file input.
+     */
     public void symmetricDecrypt(byte[] inByte) {
+        //Will be used during authentication
         boolean authTag = true;
+        //If null then use IO system to read in a file of the user's choice.
         if(inByte == null) {
             inByte = IO.getFile(view, "Select file to decrypt.");
             if(inByte == null) return;
         }
+        //Get password from user.
         byte[] pw = IO.getPassword(view, "Enter the password to use during decryption.");
         if (pw == null) {
             IO.showMessage(view, "No password entered. Canceling operation.");
@@ -76,6 +113,7 @@ public class Controller {
         byte[] ka = new byte[64];
         byte[] zpw = new byte[64 + pw.length];
         byte[] data = new byte[inByte.length - 128];
+        //Decryption algorithm.
         System.arraycopy(inByte, 64, data, 0, data.length);
         System.arraycopy(inByte, 0, zpw, 0, 64);
         System.arraycopy(pw, 0, zpw, 64, pw.length);
@@ -93,6 +131,7 @@ public class Controller {
                 break;
             }
         }
+        //If tags matched, then write out result, otherwise print an error message and do not write.
         if(authTag) {
             IO.writeBytes(out, view, "Save decrypted file.");
         } else {
@@ -100,7 +139,12 @@ public class Controller {
         }
     }
 
+    /**
+     * Creates an authentication tag based on a byte[] and user password using KMACXOF256.
+     * @param inByte contains a byte[] of user text input from the GUI or null if using file input.
+     */
     public void authentication(byte[] inByte) {
+        //If null then use IO system to read in file of the user's choosing.
         if(inByte == null) {
             inByte = IO.getFile(view, "Select file to create tag from.");
             if(inByte == null) return;
@@ -115,12 +159,19 @@ public class Controller {
         IO.writeBytes(outByte, view, "Save authentication tag.");
     }
 
+    /**
+     * Generate a public key from a user input password. Uses the E-521 curve and KMACXOF256.
+     * Public key is saved to a file of the user's choosing with the first 131 bytes being the x coordinate and
+     * the 132nd byte specifying if the least significant bit of the y coordinate is 0 or 1.
+     */
     public void keyPair() {
+        //Get password from user.
         byte[] pw = IO.getPassword(view, "Enter the password to use during key generation.");
         if (pw == null) {
             IO.showMessage(view, "No password entered. Canceling operation.");
             return;
         }
+        //Size 65 byte[] used to ensure that the 64 bit result is positive when converted to BigInteger.
         byte[] temp = new byte[65];
         System.arraycopy(KMACXOF256.compute(pw, new byte[0],
                 512, "K".getBytes(StandardCharsets.UTF_8)), 0, temp, 1, 64);
@@ -134,11 +185,19 @@ public class Controller {
         IO.writeBytes(out, view, "Save public key.");
     }
 
+    /**
+     * Encrypts a file using E-521 curve and KMACXOF256. Saves the encrypted byte[] to a file of the user's choosing.
+     * The output file contains the information for the random curve point generated from the password in the first
+     * 132 bytes, the tag in the last 64 bytes, and the encrypted byte[] in the middle bytes.
+     * @param inByte contains a byte[] of user text input from the GUI or null if using file input.
+     */
     public void asEncrypt(byte[] inByte) {
+        //If null then use IO system to read in file of the user's choosing.
         if(inByte == null) {
             inByte = IO.getFile(view, "Select file to encrypt.");
             if(inByte == null) return;
         }
+        //Get public key file of user's choosing.
         byte[] pubByte = IO.getFile(view, "Select public key to use during encryption.");
         if(pubByte == null) return;
         byte[] x = new byte[131];
@@ -172,8 +231,16 @@ public class Controller {
         IO.writeBytes(out, view, "Save encrypted file.");
     }
 
+    /**
+     * Decrypts a byte[] using the E-521 curve and KMACXOF256. Saves the decrypted byte[] to a file of the user's
+     * choosing.
+     * Encrypted byte[] assumed to be of the form where the first 132 bytes describe a random curve point generated
+     * using the user's password, the last 64 bytes are the tag, and the middle bytes are the bytes to decrypt.
+     * @param inByte contains a byte[] of user text input from the GUI or null if using file input.
+     */
     public void asDecrypt(byte[] inByte) {
         boolean authTag = true;
+        //If null then use IO system to read in file of the user's choosing.
         if(inByte == null) {
             inByte = IO.getFile(view, "Select file to encrypt.");
             if(inByte == null) return;
@@ -205,6 +272,7 @@ public class Controller {
                 break;
             }
         }
+        //If the above authentication worked, then save output to file. Otherwise, show an error message.
         if(authTag) {
             IO.writeBytes(m, view, "Save decrypted file.");
         } else {
@@ -212,6 +280,10 @@ public class Controller {
         }
     }
 
+    /**
+     * Create a signature based on a file and password of the user's choosing. Saves signature to a file of the
+     * user's choosing. Uses the E-521 curve and KMACXOF256.
+     */
     public void createSig() {
         byte[] inByte = IO.getFile(view, "Select file to sign.");
         if(inByte == null) return;
@@ -238,6 +310,11 @@ public class Controller {
         IO.writeBytes(out, view, "Save signature to file.");
     }
 
+    /**
+     * Verify a signature based on a user chosen signature file, the file associated with that signature, and the
+     * public key associated with the person who signed the file. If any of the preceding associations is incorrect
+     * or the bytes in the files have been changed then the validation will fail.
+     */
     public void verifySig() {
         byte[] sig = IO.getFile(view, "Select signature file.");
         byte[] m = IO.getFile(view, "Select file associated with signature.");

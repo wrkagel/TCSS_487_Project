@@ -6,16 +6,31 @@ import javax.swing.*;
 import java.awt.*;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * The GUI of the application. Contains the area for text input and the buttons to run the functions.
+ */
 public class GUI extends JFrame{
 
-
+    /**
+     * Text input area for when the user wants to use text input.
+     */
     private final JTextArea input = new JTextArea("Text input can be enabled in the InputType menu above.",
             50, 50);
 
+    /**
+     * The menu checkbox that tells the system whether the user wants to use text input or not.
+     */
     private final JCheckBoxMenuItem textInputCheck = new JCheckBoxMenuItem("Enable Text Input");
 
+    /**
+     * The controller that all user actions requiring encryption functions will be passed to.
+     */
     private Controller cont;
 
+    /**
+     * Constructs the GUI. Note that the controller must be set after construction or errors will occur when attempting
+     * to use any of the buttons.
+     */
     public GUI() {
         this.setTitle("TCSS 487: Project by wrkagel");
         Toolkit t = Toolkit.getDefaultToolkit();
@@ -29,6 +44,18 @@ public class GUI extends JFrame{
         this.setVisible(true);
     }
 
+    /**
+     * Sets the controller associated with the GUI. Must be set before user presses any of the action buttons
+     * or errors will be created.
+     * @param cont controller that runs all encryption functions.
+     */
+    public void setCont(Controller cont) {
+        this.cont = cont;
+    }
+
+    /**
+     * Creates and sets the menu bar of the application.
+     */
     private void createMenu() {
         JMenuBar menuBar = new JMenuBar();
         JMenu inputType = new JMenu("InputType");
@@ -48,6 +75,9 @@ public class GUI extends JFrame{
         });
     }
 
+    /**
+     * Creates and sets the buttons of the application. Contains all action calls to the controller.
+     */
     private void createCenter() {
         JPanel center = new JPanel();
         center.setLayout(new GridLayout(9, 1));
@@ -136,15 +166,14 @@ public class GUI extends JFrame{
         this.add(center, BorderLayout.CENTER);
     }
 
+    /**
+     * Creates the text input area of the application.
+     */
     private void createWest() {
         input.setEditable(false);
         input.setBackground(Color.LIGHT_GRAY);
         JScrollPane pane = new JScrollPane(input);
         this.add(pane, BorderLayout.WEST);
-    }
-
-    public void setCont(Controller cont) {
-        this.cont = cont;
     }
 
 }
