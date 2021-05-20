@@ -65,8 +65,8 @@ public class IO {
         if(JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(view)) {
             outFile = chooser.getSelectedFile();
             try {
-                if(outFile.delete()) {
-                    if (outFile.createNewFile()) {
+                outFile.delete();
+                if (outFile.createNewFile()) {
                         FileOutputStream outputStream = new FileOutputStream(outFile);
                         for (byte b : outByte) {
                             String hex = String.format("%02X", b);
@@ -74,11 +74,8 @@ public class IO {
                         }
                     } else {
                         result = "There was an error while writing to the file.";
-                    }
-                } else {
-                    result = "Failed to overwrite file.";
                 }
-            } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
                 result = "The file at " + outFile.getPath() + ". Could not be found.";
             } catch (IOException e) {
                 e.printStackTrace();
@@ -105,7 +102,8 @@ public class IO {
         if(JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(view)) {
             outFile = chooser.getSelectedFile();
             try {
-                if(outFile.delete() && outFile.createNewFile()) {
+                outFile.delete();
+                if(outFile.createNewFile()) {
                     FileOutputStream outputStream = new FileOutputStream(outFile);
                     outputStream.write(outByte);
                 } else {

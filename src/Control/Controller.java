@@ -168,8 +168,8 @@ public class Controller {
 
     /**
      * Generate a public key from a user input password. Uses the E-521 curve and KMACXOF256.
-     * Public key is saved to a file of the user's choosing with the first 131 bytes being the x coordinate and
-     * the 132nd byte specifying if the least significant bit of the y coordinate is 0 or 1.
+     * Public key is saved to a file of the user's choosing with the first 66 bytes being the x coordinate and
+     * the 67th byte specifying if the least significant bit of the y coordinate is 0 or 1.
      */
     public void keyPair() {
         //Get password from user.
@@ -185,17 +185,17 @@ public class Controller {
         BigInteger s = new BigInteger(temp);
         s = s.multiply(BigInteger.valueOf(4));
         E521CurvePoint v = E521CurvePoint.g.scalarMultiply(s);
-        byte[] out = new byte[132];
+        byte[] out = new byte[67];
         byte[] x = v.getX().toByteArray();
-        System.arraycopy(x, 0, out, 131 - x.length, x.length);
-        out[131] = (byte) (v.getY().testBit(0) ? 1 : 0);
+        System.arraycopy(x, 0, out, 66 - x.length, x.length);
+        out[66] = (byte) (v.getY().testBit(0) ? 1 : 0);
         IO.writeBytes(out, view, "Save public key.");
     }
 
     /**
      * Encrypts a file using E-521 curve and KMACXOF256. Saves the encrypted byte[] to a file of the user's choosing.
      * The output file contains the information for the random curve point generated from the password in the first
-     * 132 bytes, the tag in the last 64 bytes, and the encrypted byte[] in the middle bytes.
+     * 67 bytes, the tag in the last 64 bytes, and the encrypted byte[] in the middle bytes.
      * @param inByte contains a byte[] of user text input from the GUI or null if using file input.
      */
     public void asEncrypt(byte[] inByte) {
@@ -207,13 +207,12 @@ public class Controller {
         //Get public key file of user's choosing.
         byte[] pubByte = IO.getFile(view, "Select public key to use during encryption.");
         if(pubByte == null) return;
-        byte[] x = new byte[131];
-        System.arraycopy(pubByte, 0, x, 0, 131);
-        E521CurvePoint v = new E521CurvePoint(new BigInteger(x), pubByte[131] == (byte) 1);
+        byte[] x = new byte[66];
+        System.arraycopy(pubByte, 0, x, 0, 66);
+        E521CurvePoint v = new E521CurvePoint(new BigInteger(x), pubByte[66] == (byte) 1);
         SecureRandom r = new SecureRandom();
         byte[] k = new byte[65];
         r.nextBytes(k);
-        System.arraycopy(k, 0, k, 1, k.length - 1);
         k[0] = 0;
         BigInteger k4 = new BigInteger(k);
         k4 = k4.multiply(BigInteger.valueOf(4));
@@ -224,24 +223,24 @@ public class Controller {
         byte[] keka = KMACXOF256.compute(w.getX().toByteArray(), new byte[0], 1024, "P".getBytes(StandardCharsets.UTF_8));
         System.arraycopy(keka, 0, ke, 0, 64);
         System.arraycopy(keka, 64, ka, 0, 64);
-        byte[] out = new byte[132 + inByte.length + 64];
+        byte[] out = new byte[67 + inByte.length + 64];
         System.arraycopy(KMACXOF256.compute(ke, new byte[0], inByte.length * 8, "PKE".getBytes(StandardCharsets.UTF_8)),
-                0, out, 132, inByte.length);
+                0, out, 67, inByte.length);
         for (int i = 0; i < inByte.length; i++) {
-            out[i + 132] = (byte) (out[i + 132] ^ inByte[i]);
+            out[i + 67] = (byte) (out[i + 67] ^ inByte[i]);
         }
         System.arraycopy(KMACXOF256.compute(ka, inByte, 512, "PKA".getBytes(StandardCharsets.UTF_8)), 0,
                 out, out.length - 64, 64);
         byte[] temp = z.getX().toByteArray();
-        System.arraycopy(temp, 0, out, 131 - temp.length, temp.length);
-        out[131] = (byte) (z.getY().testBit(0) ? 1 : 0);
+        System.arraycopy(temp, 0, out, 66 - temp.length, temp.length);
+        out[66] = (byte) (z.getY().testBit(0) ? 1 : 0);
         IO.writeBytes(out, view, "Save encrypted file.");
     }
 
     /**
      * Decrypts a byte[] using the E-521 curve and KMACXOF256. Saves the decrypted byte[] to a file of the user's
      * choosing.
-     * Encrypted byte[] assumed to be of the form where the first 132 bytes describe a random curve point generated
+     * Encrypted byte[] assumed to be of the form where the first 67 bytes describe a random curve point generated
      * using the user's password, the last 64 bytes are the tag, and the middle bytes are the bytes to decrypt.
      * @param inByte contains a byte[] of user text input from the GUI or null if using file input.
      */
@@ -258,19 +257,19 @@ public class Controller {
                 512, "K".getBytes(StandardCharsets.UTF_8)), 0, temp, 1, 64);
         BigInteger s = new BigInteger(temp);
         s = s.multiply(BigInteger.valueOf(4));
-        byte[] z = new byte[131];
-        System.arraycopy(inByte, 0, z, 0, 131);
-        E521CurvePoint w = new E521CurvePoint(new BigInteger(z), inByte[131] == 1);
+        byte[] z = new byte[66];
+        System.arraycopy(inByte, 0, z, 0, 66);
+        E521CurvePoint w = new E521CurvePoint(new BigInteger(z), inByte[66] == 1);
         w = w.scalarMultiply(s);
         byte[] ke = new byte[64];
         byte[] ka = new byte[64];
         byte[] keka = KMACXOF256.compute(w.getX().toByteArray(), new byte[0], 1024, "P".getBytes(StandardCharsets.UTF_8));
         System.arraycopy(keka, 0, ke, 0, 64);
         System.arraycopy(keka, 64, ka, 0, 64);
-        byte[] m = new byte[inByte.length - 132 - 64];
+        byte[] m = new byte[inByte.length - 67 - 64];
         m = KMACXOF256.compute(ke, new byte[0], m.length * 8, "PKE".getBytes(StandardCharsets.UTF_8));
         for (int i = 0; i < m.length; i++) {
-            m[i] = (byte) (m[i] ^ inByte[i + 132]);
+            m[i] = (byte) (m[i] ^ inByte[i + 67]);
         }
         ka = KMACXOF256.compute(ka, m, 512, "PKA".getBytes(StandardCharsets.UTF_8));
         for (int i = 0; i < ka.length; i++) {
@@ -311,8 +310,8 @@ public class Controller {
         System.arraycopy(test1, 0, temp, 1, 64);
         BigInteger h = new BigInteger(temp);
         BigInteger z = k.subtract(h.multiply(s)).mod(E521CurvePoint.r);
-        byte[] out = new byte[132*2];
-        System.arraycopy(h.toByteArray(), 0, out, 132 - h.toByteArray().length, h.toByteArray().length);
+        byte[] out = new byte[67*2];
+        System.arraycopy(h.toByteArray(), 0, out, 67 - h.toByteArray().length, h.toByteArray().length);
         System.arraycopy(z.toByteArray(), 0, out, out.length - z.toByteArray().length, z.toByteArray().length);
         IO.writeBytes(out, view, "Save signature to file.");
     }
@@ -324,16 +323,18 @@ public class Controller {
      */
     public void verifySig() {
         byte[] sig = IO.getFile(view, "Select signature file.");
+        if(sig == null) return;
         byte[] m = IO.getFile(view, "Select file associated with signature.");
+        if (m == null) return;
         byte[] pubByte = IO.getFile(view, "Select public key.");
         if(pubByte == null) return;
-        byte[] x = new byte[131];
-        System.arraycopy(pubByte, 0, x, 0, 131);
-        E521CurvePoint v = new E521CurvePoint(new BigInteger(x), pubByte[131] == (byte) 1);
-        byte[] hByte = new byte[132];
-        System.arraycopy(sig, 0, hByte, 0, 132);
-        byte[] zByte = new byte[132];
-        System.arraycopy(sig, 132, zByte, 0, 132);
+        byte[] x = new byte[66];
+        System.arraycopy(pubByte, 0, x, 0, 66);
+        E521CurvePoint v = new E521CurvePoint(new BigInteger(x), pubByte[66] == (byte) 1);
+        byte[] hByte = new byte[67];
+        System.arraycopy(sig, 0, hByte, 0, 67);
+        byte[] zByte = new byte[67];
+        System.arraycopy(sig, 67, zByte, 0, 67);
         BigInteger h = new BigInteger(hByte);
         BigInteger z = new BigInteger(zByte);
         E521CurvePoint u = E521CurvePoint.g.scalarMultiply(z).add(v.scalarMultiply(h));
