@@ -37,11 +37,9 @@ public class E521CurvePoint {
             "418782636071904961214051226618635150085779108655765"));
 
     /**
-     * Common basepoint for the curve. Taken from SafeCurves at https://safecurves.cr.yp.to/base.html.
+     * Common base point / public generator for the curve. Value taken from the assignment specification.
      */
-    public static final E521CurvePoint g = new E521CurvePoint(new BigInteger("15710548941849953875359397498943175" +
-            "6864529735040290582143762518115230499438118852963259119606760410077267392791511426719338990500327" +
-            "6673749012051148356041324"), BigInteger.valueOf(12L));
+    public static final E521CurvePoint g = new E521CurvePoint(BigInteger.valueOf(4), false);
 
     /**
      * Stores the x coordinate of the curve point.

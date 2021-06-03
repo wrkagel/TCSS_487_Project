@@ -10,7 +10,9 @@ package Model;
 import java.util.Arrays;
 
 /**
- * Class that can perform Keccak-1600 Encryption and decryption on a long[25] data array.
+ * Class that can perform Keccak-1600 permutations and sponge function absorption and squeezing.
+ * This class has been designed specifically to work with the KMACXOF256 class that is also a part of this application.
+ * Its accuracy for other purposes has not been tested.
  * Specifications taken from https://keccak.team/keccak_specs_summary.html and code developed
  * using the project at https://github.com/mjosaarinen/tiny_sha3 as a reference.
  */
@@ -58,14 +60,14 @@ public class Keccak1600 {
     private final long[] st = new long[25];
 
     /**
-     * pt points to the current point in the st array.
+     * Used to denote the block size, which is fixed at 1088 bits or 136 bytes for KMACXOF256
      */
-    private int pt;
+    private static final int rsize = 136;
 
     /**
-     * rsize is used to denote the block size and mdlen denotes the length of the desired output.
+     * Denotes the length of the desired output.
      */
-    private final int rsize, mdlen;
+    private final int mdlen;
 
     /**
      * Constructs an instance of Sha3 that will output a given message digest length. rsize is constant for KMACXOF256
@@ -74,10 +76,8 @@ public class Keccak1600 {
      */
     Keccak1600(int mdlen) {
         Arrays.fill(st, 0);
+        if(mdlen < 1) throw new IllegalArgumentException("mdlen > 0 must be true.");
         this.mdlen = mdlen;
-        //rsize is hardcoded here for simplicity.
-        this.rsize = 136;
-        this.pt = 0;
     }
 
     /**
@@ -89,8 +89,8 @@ public class Keccak1600 {
         long[] bc = new long[5];
 
         //Reverse byte order to simulate little endian when performing permutations
-        //This changes some rotation values during the permutations.
-        for(i = 0; i < 25; i++) {
+        //This changes some rotation values during the permutations compared to the original specifications.
+        for(i = 0; i < st.length; i++) {
             st[i] = Long.reverseBytes(st[i]);
         }
 
@@ -128,7 +128,7 @@ public class Keccak1600 {
         }
 
         //Flip the bytes back into their proper positions
-        for (i = 0; i < 25; i++) {
+        for (i = 0; i < st.length; i++) {
             st[i] = Long.reverseBytes(st[i]);
         }
 
@@ -136,10 +136,13 @@ public class Keccak1600 {
 
     /**
      * Absorbs the data into the keccak[1600] sponge function one block at a time.
+     * Expects that the d value has been appended into the data byte[] before calling.
+     * To understand what the d value is see the section on the Pseudo-code description of the sponge function
+     * at https://keccak.team/keccak_specs_summary.html.
      * @param data input data
      */
-    public void sha3Update( byte[] data) {
-        int i, j = pt;
+    public void sha3Update(byte[] data) {
+        int i, j = 0;
         for (i = 0; i < data.length; i++) {
             byte b = ((byte) (st[j / 8] >>> (8 * (7 - j % 8))));
             st[j/8] = st[j/8] & masks[i % 8];
@@ -157,7 +160,6 @@ public class Keccak1600 {
         b ^= 0x80;
         st[j / 8] |= Byte.toUnsignedLong(b) << (8 * (7 - j % 8));
         sha3Keccak1600();
-        pt = j;
     }
 
     /**
@@ -183,7 +185,7 @@ public class Keccak1600 {
     }
 
     /**
-     * Used for testing. Prints out the state at various points as long separated hex characters.
+     * Used for testing. Prints out the state points as long separated hex characters.
      * @param test long[] to be printed
      */
     private void printArray(long[] test) {
