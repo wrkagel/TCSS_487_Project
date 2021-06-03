@@ -1,7 +1,6 @@
 package Control;
 
 import Model.E521CurvePoint;
-import Model.IO;
 import Model.KMACXOF256;
 import View.GUI;
 

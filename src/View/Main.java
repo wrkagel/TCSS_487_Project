@@ -1,6 +1,6 @@
-package Control;
+package View;
 
-import View.GUI;
+import Control.Controller;
 
 /*
     TCSS 487

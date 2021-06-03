@@ -137,7 +137,7 @@ public class KMACXOF256 {
      * https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-185.pdf.
      * Note that because this function is only being used with KMACXOF256 n is never the empty string
      * and thus shake256 will never be called and thus is not implemented.
-     * @param x Control.Main input as a byte[]
+     * @param x main input as a byte[]
      * @param l Length of desired output as an int
      * @param n Function name as a byte[]
      * @param s Customization string as a byte[]
